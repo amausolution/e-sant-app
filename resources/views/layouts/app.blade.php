@@ -14,28 +14,21 @@
     <!-- google font -->
     <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700" rel="stylesheet" type="text/css" />
     <!-- icons -->
-    <link href="{{au_file('partner/light/css/all.css')}}" rel="stylesheet" type="text/css" />
+    <link href="{{au_file('css/all.css')}}" rel="stylesheet" type="text/css" />
     <!-- Bootstrap CSS -->
     @routes
     <script src="{{ mix('js/app.js') }}" defer></script>
     <link href="{{ mix('css/app.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{au_file('partner/assets/css/bootstrap.min.css')}}">
     <!-- Fontawesome CSS -->
-    <link rel="stylesheet" href="{{au_file('partner/assets/css/font-awesome.min.css')}}">
+    <link rel="stylesheet" href="{{au_file('css/fontawesome.css')}}">
     <!-- Lineawesome CSS -->
     <link rel="stylesheet" href="{{au_file('partner/assets/css/line-awesome.min.css')}}">
     <!-- Chart CSS -->
     <link rel="stylesheet" href="{{au_file('partner/assets/plugins/morris/morris.css')}}">
     <!-- Main CSS -->
     <link rel="stylesheet" href="{{au_file('partner/assets/css/style.css')}}">
-    <link rel="stylesheet" href="{{au_file('partner/assets/plugins/select2/css/select2.min.css')}}">
-    <!-- Select2 CSS -->
-    <link rel="stylesheet" href="{{au_file('partner/assets/css/select2.min.css')}}">
-    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
-<!--[if lt IE 9]>
-    <script src="{{au_file('partner/assets/js/html5shiv.min.js')}}"></script>
-    <script src="{{au_file('partner/assets/js/respond.min.js')}}"></script>
-    <![endif]-->
+
     @section('block_component_css')
         @include('partner.component.css')
     @show
@@ -45,34 +38,35 @@
 <!-- END HEAD -->
 
 <body>
+
+
 <div class="main-wrapper">
+
     @inertia
 </div>
-<script>
-    window._translations = @json(translate());
-</script>
+
 
 <!-- jQuery -->
 <script src="{{au_file('partner/assets/js/jquery-3.5.1.min.js')}}"></script>
 <!-- Bootstrap Core JS -->
 <script src="{{au_file('partner/assets/js/popper.min.js')}}"></script>
 <script src="{{au_file('partner/assets/js/bootstrap.min.js')}}"></script>
-<script src="{{au_file('partner/assets/plugins/select2/js/select2.min.js')}}"></script>
 <!-- Slimscroll JS -->
 <script src="{{au_file('partner/assets/js/jquery.slimscroll.min.js')}}"></script>
 <!-- Chart JS -->
 <script src="{{au_file('partner/assets/plugins/morris/morris.min.js')}}"></script>
 <script src="{{au_file('partner/assets/plugins/raphael/raphael.min.js')}}"></script>
-<script src="{{au_file('partner/assets/js/chart.js')}}"></script>
+
 <!-- Custom JS -->
 <script src="{{au_file('partner/assets/js/app.js')}}"></script>
-<!-- Select2 JS -->
-<script src="{{au_file('partner/assets/js/select2.min.js')}}"></script>
+
 {{--<script src="https://cdn.ckeditor.com/ckeditor5/31.1.0/classic/ckeditor.js"></script>--}}
 
 <!-- end js include path -->
 @stack('scripts')
-
+<script>
+    window._translations = @json(translate());
+</script>
 
 
 @section('block_component_alerts')

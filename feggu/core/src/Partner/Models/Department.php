@@ -5,6 +5,7 @@ namespace Feggu\Core\Partner\Models;
 
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Multitenancy\Models\Concerns\UsesTenantConnection;
 
 class Department extends Model
 {
@@ -15,55 +16,11 @@ class Department extends Model
     protected $guarded = [];
     protected $connection = AU_CONNECTION;
 
+    use UsesTenantConnection;
+
     public function hospitals()
     {
         return $this->belongsToMany(FegguPartner::class, DepartmentPartner::class, 'department_id', 'partner_id');
-    }
-
-    public function descriptions()
-    {
-        return $this->hasMany(DepartmentDescription::class, 'department_id', 'id');
-    }
-
-    //Function get text description
-    public function getText()
-    {
-        return $this->descriptions()->where('lang', au_get_locale())->first();
-    }
-    public function getTitle()
-    {
-        return $this->getText()->title ?? '';
-    }
-
-    //End  get text description
-
-    /**
-     * Get page detail
-     *
-     * @param   [string]  $key     [$key description]
-     * @param   [string]  $type  [id, alias]
-     *
-     */
-    public function getDetail($key, $type = null)
-    {
-        if (empty($key)) {
-            return null;
-        }
-        $tableDescription = (new DepartmentDescription())->getTable();
-
-        $dataSelect = $this->getTable().'.*, '.$tableDescription.'.*';
-        $page = $this->selectRaw($dataSelect)
-            ->leftJoin($tableDescription, $tableDescription . '.department_id', $this->getTable() . '.id')
-            ->where($tableDescription . '.lang', au_get_locale());
-
-        if ($type === null) {
-            $page = $page->where($this->getTable() .'.id', (int) $key);
-        } else {
-            $page = $page->where($type, $key);
-        }
-        $page = $page->where($this->getTable() .'.status', 1);
-
-        return $page->first();
     }
 
     protected static function boot()
@@ -72,7 +29,6 @@ class Department extends Model
         // before delete() method call this
         static::deleting(
             function ($page) {
-                $page->descriptions()->delete();
                 $page->hospitals()->detach();
             }
         );

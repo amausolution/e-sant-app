@@ -12,10 +12,6 @@ class Session
 
         config(['session.path' => $path]);
 
-        if ($domain = config('partner.route.domain')) {
-            config(['session.domain' => $domain]);
-        }
-
         return $next($request);
     }
 }

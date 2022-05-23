@@ -5,7 +5,9 @@ namespace App\Http\Livewire\Partner\Ticket;
 use DateTime;
 use Feggu\Core\Partner\Models\DepartmentPartner;
 use Feggu\Core\Partner\Models\FegguConsultation;
+use Feggu\Core\Partner\Models\FegguConsultationPayment;
 use Feggu\Core\Partner\Models\FegguUser;
+use Feggu\Core\Partner\Models\FegguUserDetail;
 use Livewire\Component;
 
 class NewPatient extends Component
@@ -67,21 +69,22 @@ class NewPatient extends Component
           'mobil'=>$this->mobil,
           'email'=>strtolower($this->email)??'',
           'address'=>$this->address,
-          'assurance'=>$this->is_insured,
           'birthday'=>$this->birthday,
           'phone_urgency'=>$this->phone2,
       ];
+      $detail = new FegguUserDetail();
+      $detail->assurance=$this->is_insured;
 
         if ($this->is_insured){
-            $dataInsert['assurance_service']=$this->insurer;
-            $dataInsert['assurance_number']=$this->insurer_number;
-            $dataInsert['assurance_percentage']=$this->insurer_percentage;
-            $dataInsert['date_expiration']=$this->exp_date;
+            $detail->assurance_service=$this->insurer;
+            $detail->assurance_number=$this->insurer_number;
+            $detail->assurance_percentage=$this->insurer_percentage;
+            $detail->date_expiration=$this->exp_date;
         }
 
         $age = (int)date('Y', time() - strtotime($this->birthday)) - 1970;
         if ($age < 17){
-          $dataInsert['godfather']= $this->godfather;
+          $detail->godfather= $this->godfather;
         }else{
             $dataInsert['type_piece']=$this->type_piece;
             $dataInsert['number_piece']=$this->piece;
@@ -89,10 +92,11 @@ class NewPatient extends Component
         }
 
         $dataInsert = au_clean($dataInsert,[],true);
-        $ticket = FegguUser::create($dataInsert);
 
-        $doc = generateDocNumber($this->first_name,$this->last_name,$ticket->id);
-        $ticket->update(['doc_number'=>$doc]);
+        $user = FegguUser::create($dataInsert);
+        $user->detail()->save($detail);
+        $doc = generateDocNumber($this->first_name,$this->last_name,$user->id);
+        $user->update(['doc_number'=>$doc]);
 
         $dataConsultation = [
             'department_id'=>$this->department,
@@ -104,13 +108,20 @@ class NewPatient extends Component
             'discount'=>$this->amount - $this->net,
             'hospital_id'=>getPartner()->id,
             'user_id'=>\Partner::user()->id,
-            'patient_id'=>$ticket->id,
+            'patient_id'=>$user->id,
             'address'=>$this->address,
         ];
+        $payment = new FegguConsultationPayment();
 
         $dataConsultation = au_clean($dataConsultation,[],true);
-        FegguConsultation::create($dataConsultation);
-
+        $consultation = FegguConsultation::create($dataConsultation);
+        if ($this->is_insured){
+             $payment->assurance_number = $this->insurer_number;
+             $payment->assurance_percentage=$this->insurer_percentage;
+             $payment->assurance_exp_date= $this->exp_date;
+             $payment->assurance_service=$this->insurer;
+             $consultation->payment()->save($payment);
+        }
         $this->dataPrint = $dataConsultation;
         $this->dataPrint['date']= showDate(now());
         $this->dataPrint['partner']=getPartner()->getTitle();

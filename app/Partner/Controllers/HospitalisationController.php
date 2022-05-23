@@ -2,27 +2,27 @@
 
 namespace App\Partner\Controllers;
 
-use App\Http\Controllers\Controller;
+
 use App\Http\Controllers\RootPartnerController;
-use Feggu\Core\Partner\Models\CategoryAnalysis;
+
 use Feggu\Core\Partner\Models\FegguConsultation;
 use Feggu\Core\Partner\Models\FegguConsultationAnalyse;
 use Feggu\Core\Partner\Models\FegguConsultationPrescription;
 use Feggu\Core\Partner\Models\FegguHospitalisation;
-use Feggu\Core\Partner\Models\FegguPartner;
+
 use Feggu\Core\Partner\Models\HospitalisationTrack;
 use Feggu\Core\Partner\Models\HospitalRoom;
 use Feggu\Core\Partner\Models\HospitalRoomBet;
-use Feggu\Core\Partner\Models\PartnerBed;
+
 use Feggu\Core\Partner\Partner;
-use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Contracts\View\Factory;
-use Illuminate\Contracts\View\View;
+
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
+
 use Illuminate\Http\Response;
 
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Request;
+
+use Inertia\Inertia;
 use Validator;
 
 class HospitalisationController extends RootPartnerController
@@ -30,7 +30,7 @@ class HospitalisationController extends RootPartnerController
     /**
      * Display a listing of the resource.
      *
-     * @return Application|Factory|View
+     * @return \Inertia\Response
      */
     public function index()
     {
@@ -39,12 +39,55 @@ class HospitalisationController extends RootPartnerController
             abort(404);
         }
 
-        return view($this->templatePathPartner.'hospitalisation.index',[
+        return Inertia::render('Partner/Hospitalisation/Index',[
             'title'=>__('List Ask Hospitalisation'),
-            'subTitle' => '',
-            'icon' => 'fa fa-indent',
-            'hospitalisation'=>0,
-            'title_form' => '<i class="fa fa-plus" aria-hidden="true"></i> ' . __('List Hospitalisation'),
+            'hospitalisations'=> FegguHospitalisation::where('status',0)->where('hospital_id',session('partnerId'))->with('patient')
+                ->orderByName()
+                ->filter(Request::only('search','patientID','gender','phone','cin'))
+                ->paginate(20)
+                ->withQueryString()
+                ->through(fn ($hp) => [
+                    'id' => $hp->slug,
+                    'name' => $hp->patient->name,
+                    'phone_urgency' => $hp->patient->phone_urgency,
+                    'patientId'=>$hp->patient->doc_number,
+                    'doctor'=>$hp->doctor->name,
+                    'gender'=> gender()[$hp->patient->gender],
+                    'avatar'=> asset($hp->patient->getAvatar()),
+                ]),
+            'filters' => \request()->all('search','patientID','gender','phone','cin'),
+        ]);
+    }
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Inertia\Response
+     */
+    public function hospitalized()
+    {
+        $partnerId = session('partnerId');
+        if (!$partnerId){
+            abort(404);
+        }
+
+        return Inertia::render('Partner/Hospitalisation/Patient',[
+            'title'=>__('List Ask Hospitalisation'),
+            'hospitalisations'=> FegguHospitalisation::where('status',1)->where('hospital_id',session('partnerId'))->with('patient')
+                ->orderByName()
+                ->filter(Request::only('search','patientID','gender','phone','cin'))
+                ->paginate(20)
+                ->withQueryString()
+                ->through(fn ($hp) => [
+                    'id' => $hp->slug,
+                    'name' => $hp->patient->name,
+                    'phone_urgency' => $hp->patient->phone_urgency,
+                    'patientId'=>$hp->patient->doc_number,
+                    'doctor'=>$hp->doctor->name,
+                    'gender'=> gender()[$hp->patient->gender],
+                    'avatar'=> asset($hp->patient->getAvatar()),
+                ]),
+            'filters' => \request()->all('search','patientID','gender','phone','cin'),
         ]);
     }
 
@@ -64,42 +107,10 @@ class HospitalisationController extends RootPartnerController
     }
 
     /**
-     * Show the form for creating a new resource.
-     *
-     * @return Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param Request $request
-     * @return Response
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param $slug
-     * @return void
-     */
-    public function show($slug)
-    {
-        //
-    }
-
-    /**
      * Show the form for editing the specified resource.
      *
      * @param $slug
-     * @return Application|Factory|View|Response
+     * @return string
      */
     public function edit($slug)
     {
@@ -108,14 +119,72 @@ class HospitalisationController extends RootPartnerController
             return 'no data';
         }
 
-        return view($this->templatePathPartner.'hospitalisation.hospitalisation',[
+        return Inertia::render('Partner/Hospitalisation/New',[
             'title'=>__('Detail Hospitalisation'),
-            'subTitle' => '',
-            'icon' => 'fa fa-indent',
             'hospitalisation'=>$hospitalisation,
             'rooms'=>HospitalRoom::with('beds')->get(),
+            'type_piece'=>typePiece()
         ]);
+    }
 
+    public function editHospitalize($slug)
+    {
+        //dd($slug);
+        $hospitalisation = FegguHospitalisation::where('slug',$slug)->where('status',1)->firstOrFail();
+        if (!$hospitalisation){
+            return 'no data';
+        }
+
+        return Inertia::render('Partner/Hospitalisation/Hospitalized',[
+            'title'=>__('Detail Hospitalisation'),
+            'hospitalisation'=>[
+                'id'=>$hospitalisation->id,
+                'room'=>$hospitalisation->room,
+                'bed'=>$hospitalisation->bed,
+                'doctor'=>$hospitalisation->doctor->name,
+                'indemnification'=>$hospitalisation->indemnification,
+                'accompanying'=>$hospitalisation->accompanying,
+                'accompanying_phone'=>$hospitalisation->accompanying_phone,
+                'piece_guarantor'=>$hospitalisation->piece_guarantor,
+                'hospitalized_by'=>$hospitalisation->hospitalized->name,
+                'date_in'=>$hospitalisation->date_in,
+                'consultation'=> $hospitalisation->consultations()->get()->map(function ($consultation){
+                    return [
+                        'doctor'=>$consultation->doctor->name,
+                        'id'=>$consultation->id,
+                        'date'=>showDateTime($consultation->created_at),
+                        'diagnostic'=>$consultation->diagnostic,
+                        'first_diag'=>$consultation->first_diag??[],
+
+                        'prescriptions'=> $consultation->prescriptions()->get()->map(function ($prescription){
+                             return [
+                               'id'=>$prescription->id,
+                               'doctor'=>$prescription->doctor->name,
+                               'label'=>$prescription->label,
+                               'quantity'=>$prescription->quantity,
+                               'dosage'=>$prescription->dosage,
+                               'duration'=>$prescription->duration,
+
+                             ];
+                         })
+                    ];
+                }),
+                'patient'=>[
+                    'blood'=>$hospitalisation->patient->blood_group,
+                    'name'=>$hospitalisation->patient->name,
+                    'gender'=>gender()[$hospitalisation->patient->gender],
+                    'patientID'=>$hospitalisation->patient->doc_number,
+                    'phone'=>$hospitalisation->patient->mobil,
+                    'birthday'=> showDob($hospitalisation->patient->birthday),
+                    'address'=>$hospitalisation->consultation->address,
+                    'email'=>$hospitalisation->patient->email,
+                    'age'=>$hospitalisation->consultation->age,
+                    'avatar'=>asset($hospitalisation->patient->getAvatar())
+                ]
+            ],
+            //'rooms'=>HospitalRoom::with('beds')->get(),
+            'type_piece'=>typePiece()
+        ]);
     }
 
     /**
@@ -123,41 +192,39 @@ class HospitalisationController extends RootPartnerController
      *
      * @param Request $request
      * @param $slug
-     * @return RedirectResponse|Response
+     * @return string
      */
-    public function update(Request $request, $slug)
+    public function storeHospitalisation()
     {
+        $data =Request::all();
+       // dd($data);
 
-        $data = $request->all();
-
-        $dataOrigine = $request->all();
-        $hospitalization = FegguHospitalisation::where('slug',$slug)->firstOrFail();
+        $hospitalization = FegguHospitalisation::where('slug',$data['slug'])->firstOrFail();
         if (!$hospitalization){
             return 'no data';
         }
-        $validator = Validator::make($dataOrigine,[
+        Request::validate([
             'accompanying' => 'required',
-            'phone'=>'required',
-            'piece'=>'required',
+            'accompanying_phone'=>'required',
+            'piece_guarantor'=>'required',
             'type_piece'=>'required',
-            'bed_id'=>'required',
+            'bed'=>'required',
+            'slug'=>'required'
         ],[
 
         ]);
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
+
         $data = au_clean($data);
-        $bed = HospitalRoomBet::findOrFail($data['bed_id']);
+        $bed = HospitalRoomBet::findOrFail($data['bed']);
         $dataUpdate= [
             'accompanying'=>$data['accompanying'],
-            'accompany_phone'=>$data['phone'],
-            'piece_guarantor'=>$data['piece'],
+            'accompanying_phone'=>$data['accompanying_phone'],
+            'piece_guarantor'=>$data['piece_guarantor'],
+            'indemnification'=>!empty($data['indemnification']) ? 1 : 0,
             'type_piece'=>$data['type_piece'],
             'room'=>$bed->room->room_number,
             'bed'=>$bed->bed_number,
+            'bed_id'=>$bed->id,
             'price'=>$bed->room->price,
             'hospitalized_by'=> Partner::user()->id,
             'status'=>1,

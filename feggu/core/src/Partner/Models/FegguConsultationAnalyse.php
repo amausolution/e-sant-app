@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class FegguConsultationAnalyse extends Model
 {
     public $table          = AU_DB_PREFIX.'consultation_analyse';
-    protected $connection  = AU_CONNECTION;
+    protected $connection  = 'consultation';
     protected $guarded     = [];
 
     use SoftDeletes;

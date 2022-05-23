@@ -1,5 +1,5 @@
 <?php
-   Route::group(['prefix' => 'hospitalisation'], function () {
+/*   Route::group(['prefix' => 'hospitalisation'], function () {
         Route::get('/', 'HospitalisationController@index')->name('hospitalisation.index');
         Route::get('/patient', 'HospitalisationController@patient')->name('hospitalisation.patient');
         Route::get('create', 'HospitalisationController@create')->name('hospitalisation.create');
@@ -16,4 +16,4 @@ Route::group(['prefix' => 'patient_hospitalisation'], function () {
     Route::post('/done', 'HospitalisationController@getOut')->name('hospitalisation.get_out');
     Route::post('/post_diagnostic', 'HospitalisationController@diagnostic')->name('hospitalisation.postDiag');
     Route::post('/post_rapport', 'HospitalisationController@rapport')->name('hospitalisation.postRapport');
-});
+});*/

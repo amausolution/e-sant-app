@@ -636,6 +636,12 @@ function showDate($date, $format = 'd M Y')
     \Carbon\Carbon::setlocale($lang);
     return \Carbon\Carbon::parse($date)->translatedFormat($format);
 }
+function showDob($date, $format = 'd, M Y')
+{
+    $lang = session()->get('locale')??'fr';
+    \Carbon\Carbon::setlocale($lang);
+    return \Carbon\Carbon::parse($date)->translatedFormat($format);
+}
 function showDateAppoint($date, $format = 'd M Y')
 {
     $lang = session()->get('locale')??'fr';

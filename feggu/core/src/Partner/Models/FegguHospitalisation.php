@@ -4,15 +4,17 @@ namespace Feggu\Core\Partner\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class FegguHospitalisation extends Model
 {
     protected $guarded    = [];
     public $table = AU_DB_PREFIX.'hospital_hospitalisation';
-    protected $connection = AU_CONNECTION;
+    protected $connection = 'consultation';
 
-    use SoftDeletes;
+    use SoftDeletes, UuidTrait;
+
 
     public function hospital()
     {
@@ -35,10 +37,14 @@ class FegguHospitalisation extends Model
     {
         return $this->belongsTo(PartnerUser::class, 'doctor_id', 'id');
     }
+    public function hospitalized()
+    {
+        return $this->belongsTo(PartnerUser::class, 'hospitalized_by', 'id');
+    }
 
     public function consultations()
     {
-        return $this->belongsToMany(FegguConsultation::class, AU_DB_PREFIX.'hospitalisation_consultation','hospitalisation_id','consultation_id');
+        return $this->belongsToMany(FegguConsultation::class, HospitalisationConsultation::class,'hosp_id','consultation_id');
     }
 
     public function consultation()
@@ -46,10 +52,15 @@ class FegguHospitalisation extends Model
       return $this->belongsTo(FegguConsultation::class,'consultation_id','id') ;
     }
 
+
     public static function boot()
     {
         parent::boot();
-
+        static::creating(function ($model) {
+            if (empty($model->{$model->getKeyName()})) {
+                $model->{$model->getKeyName()} = au_generate_id();
+            }
+        });
         static::deleting(function ($model) {
             $model->deleted_by = \Partner::user()->id;
             $model->deleted_by_ip = request()->ip();
@@ -57,5 +68,28 @@ class FegguHospitalisation extends Model
         });
     }
 
+
+
+    public function scopeOrderByName($query)
+    {
+        $query->orderBy('created_at','asc');
+    }
+    public function scopeFilter($query, array $filters)
+    {
+        $query->when($filters['search'] ?? null, function ($query, $search) {
+            $query->where(function ($query) use ($search) {
+                $query->where('first_name', 'like', '%'.$search.'%')
+                    ->orWhere('last_name', 'like', '%'.$search.'%');
+            });
+        })->when($filters['patientId'] ?? null, function ($query, $identifier) {
+            $query->where(function ($query) use ($identifier) {
+                $query->where('doc_number', '=', $identifier);
+            });
+        })->when($filters['gender'] ?? null, function ($query, $gender) {
+            $query->where(function ($query) use ($gender) {
+                $query->where('gender', '=', $gender);
+            });
+        });
+    }
 
 }

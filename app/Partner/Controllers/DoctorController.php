@@ -35,7 +35,7 @@ class DoctorController extends RootPartnerController
     }
     public function index()
     {
-    
+
        return Inertia::render('Partner/Doctor/Index',[
            'title'=> __('Listing Doctor'),
            'doctors'=> PartnerUser::where('group',1)
@@ -74,7 +74,7 @@ class DoctorController extends RootPartnerController
     public function store()
     {
         $data = Request::all();
-        dd($data);
+        //dd($data);
         $dataOrigin = Request::all();
        Request::validate( [
             'first_name' => 'required|string|max:50',
@@ -97,7 +97,7 @@ class DoctorController extends RootPartnerController
         ]);
 
 
-       
+
         $data = au_clean($data,[]);
         $two_char = substr($data['first_name'], 0,2);
         $one_char = $data['last_name'][0];
@@ -118,11 +118,12 @@ class DoctorController extends RootPartnerController
             'password'       => bcrypt($data['password']),
         ];
         if ($image = Request::file('avatar')) {
-           /*  $imageDestinationPath = 'data/partner/';
-            $postImage =$imageDestinationPath.date('YmdHis') . "." . $image->getClientOriginalExtension();
-            $image->move($imageDestinationPath, $postImage); */
-           $dataInsert['avatar'] = uploadImage($image, imagePath()['partber']['path'],imagePath()['product']['size'], null ,imagePath()['product']['thumb']);
-           // ['avatar'] = "$postImage";
+             $imageDestinationPath = 'data/partner/';
+            $postImage =$imageDestinationPath.$data['first_name'].'_'.$data['last_name'].'_'.$data['username'] . "." . $image->getClientOriginalExtension();
+            $image->move($imageDestinationPath, $postImage);
+            $dataInsert['avatar'] = $postImage;
+          // $dataInsert['avatar'] = uploadImage($image, imagePath()['partber']['path'],imagePath()['product']['size'], null ,imagePath()['product']['thumb']);
+           // ;
         }
        //dd($data['specialities']);
 
@@ -166,13 +167,12 @@ class DoctorController extends RootPartnerController
            if ($permission) {
                $doc->permissions()->attach($permission);
            }
-
         return redirect()->route('doctor.index')->with('success','Post created successfully.');
     }
     public function edit($id)
     {
         $doctor = PartnerUser::find($id);
-        return Inertia::render('Partner/Doctor/Create',[
+        return Inertia::render('Partner/Doctor/Edit',[
             'title'            =>  au_language_render('Edit Doctor'),
             'roles'             => $this->roles,
             'permissions'       => $this->permissions,
@@ -182,9 +182,10 @@ class DoctorController extends RootPartnerController
                 'first_name' => $doctor->first_name,
                 'last_name' => $doctor->last_name,
                 'gender' => ['id'=>$doctor->gender,
-                    'title'=>gender()[$doctor->gender]],
+                'title'=>gender()[$doctor->gender]],
                 'birthday' => $doctor->birthday,
-                // 'matricule' => $doctor->matricule,
+                'matricule' => $doctor->matricule,
+                // 'email' => $doctor->matricule,
                 'username'=>$doctor->username,
                 'profession'=>$doctor->job()->get()->map->only('id','title'),
                 'phone'=>$doctor->phone,
@@ -192,14 +193,14 @@ class DoctorController extends RootPartnerController
                 'specialisations' => $doctor->specializations()->get()->map->only('id', 'title'),
                 'education' => $doctor->education,
                 'title' => $doctor->title,
-                'roles' => $doctor->roles()->get()->map->only('id', 'name'),
-                'permissions' => $doctor->permissions()->get()->map->only('id', 'name'),
-                'departments' => $doctor->areDepartments,
+                'roles' => $doctor->roles()->pluck('id'),
+                'permissions' => $doctor->permissions()->pluck('id'),
+                'departments' => $doctor->areDepartments()->get()->map->only('id','department'),
                 'address' => $doctor->address,
             ],
-            'departments'       => FegguPartner::where('id',session('partnerId'))->first()->departments,
-            'specialities'      => FegguSpecialization::all(),
-            'professions'       => FegguProfession::all(),
+            'departments'       => FegguPartner::where('id',session('partnerId'))->first()->departments()->get()->map->only('id','department'),
+            'specialities'      => FegguSpecialization::get()->map->only('id','title'),
+            'professions'       => FegguProfession::get()->map->only('id','title'),
             'genders'           => genders(),
             'defaultAvatar'     => asset('images/avatar.png')
         ]);
@@ -212,43 +213,35 @@ class DoctorController extends RootPartnerController
             return 'no data';
         }
         $data = Request::all();
-       // dd($data);
+       //dd($data);
         $dataOrigin = Request::all();
       //  dd($data['gender']);
-        Request::validate($dataOrigin, [
+        Request::validate( [
             'first_name' => 'required|string|max:50',
             'last_name' => 'required|string|max:50',
-            'username' => 'required|regex:/(^([0-9A-Za-z@\._-]+)$)/|unique:"'.PartnerUser::class.'",username,' . $doc->id . '",username|string|max:100|min:3',
-            'avatar'   => 'nullable|image|max:1024|mimes:jpg,jpeg,png',
-            'password' => 'nullable|string|max:60|min:8|confirmed',
+            // 'username' => 'required|regex:/(^([0-9A-Za-z@\._-]+)$)/|unique:"'.PartnerUser::class.'",username|string|max:100|min:3',
+            'avatar'   => 'nullable|image|max:1024|mimes:jpg,jpeg,png,webp',
+            // 'password' => 'required|string|max:60|min:8|confirmed',
             'email'    => 'required|string|email|max:255',
             'address'    => 'required|string|max:255',
-            'matricule'=>'required',
-            'gender'=>'required|numeric',
-            'birthday'=>'nullable',
-            'profession'=>'required|numeric',
-            'phone'=>'required|numeric',
-            'department'=>'required',
+            // 'matricule'=>'required',
+            'gender'=>'required',
+            'birthday'=>'required',
+            'profession'=>'required',
+            'phone'=>'required',
+            //  'department'=>'required',
             'education'=>'required',
-            'specialization'=>'required',
+            'specialities'=>'required',
         ],[
-            'first_name.required'=>au_language_render('partner.validation.first_name_required')
+            'first_name.required'=>au_language_render('the first name is required')
         ]);
-
-
-        if ($image = request()->file('avatar')) {
-            $imageDestinationPath = 'data/partner/';
-            $postImage =$imageDestinationPath.date('YmdHis') . "." . $image->getClientOriginalExtension();
-            $image->move($imageDestinationPath, $postImage);
-            $dataUpdate['avatar'] = "$postImage";
-        }
 
         $dataUpdate = [
             'first_name'     => $data['first_name'],
             'last_name'     => $data['last_name'],
             'address'     => $data['address'],
-            'gender'     => $data['gender'],
-            'profession'     => $data['profession'],
+            'gender'     => $data['gender']['id'],
+            'profession'     => $data['profession'][0]['id'],
             'education'     => $data['education'],
             'birthday'     => date('Y/m/d', strtotime($data['birthday']) ),
             'matricule'     => $data['matricule'],
@@ -257,22 +250,37 @@ class DoctorController extends RootPartnerController
             'email'    => strtolower($data['email']),
             //'password' => bcrypt($data['password']),
         ];
+        if ($image = request()->file('avatar')) {
+            $imageDestinationPath = 'data/partner/';
+            $postImage =$imageDestinationPath.$doc->first_name.'_'.$doc->last_name."_".$doc->username. "." . $image->getClientOriginalExtension();
+            $image->move($imageDestinationPath, $postImage);
+            \File::delete(public_path($doc->avatar));
+            $dataUpdate['avatar'] = $postImage;
+        }
         //dd($dataUpdate);
         PartnerUser::updateInfo($dataUpdate, $id);
-        $specialities = $data['specialization'] ?? [];
+        $specialities = $data['specialities'] ?? [];
         $department = $data['department'] ?? [];
-        $doc->departments()->detach();
+        $doc->areDepartments()->detach();
         $doc->specializations()->detach();
-        //Insert roles
+        $arraySpeciality = [];
+        $arrayDepart = [];
+        foreach ($data['specialities'] as $v){
+            $arraySpeciality [] = $v['id'];
+        }
+        foreach ($data['department'] as $v){
+            $arrayDepart [] = $v['id'];
+        }
+        //Insert speciality
         if ($specialities) {
-            $doc->specializations()->attach($specialities);
+            $doc->specializations()->attach($arraySpeciality);
         }
-        //Insert permission
+        //Insert depart
         if ($department) {
-            $doc->departments()->attach($department);
+            $doc->areDepartments()->attach($arrayDepart);
         }
-             $roles = $data['roles'] ?? [];
-             $permission = $data['permissions'] ?? [];
+             $roles = $data['role'] ?? [];
+             $permission = $data['permissionUser'] ?? [];
              $doc->roles()->detach();
              $doc->permissions()->detach();
              //Insert roles
@@ -286,12 +294,20 @@ class DoctorController extends RootPartnerController
         return redirect()->route('doctor.index')->with('success', au_language_render('partner.user.edit_success'));
 
     }
-    public function delete($id)
+    public function delete()
     {
-        $doctor = PartnerUser::find($id);
+        $idD = Request::only('id');
+        $doctor = PartnerUser::where('id',$idD)->first();
+        if (!$doctor){
+            return 'no data';
+        }
+       // dd($doctor);
+        if (!empty($doctor->avatar)){
+            \File::delete(public_path($doctor->avatar));
+        }
         $doctor->delete();
-        $notify[] = ['success', 'Data Deleted Successfully'];
-        return redirect()->back()->withNotify($notify);
+
+        return redirect()->route('doctor.index')->with('success', au_language_render('partner.user.edit_success'));
     }
 
     public function show($id,Request $request)
@@ -335,37 +351,13 @@ class DoctorController extends RootPartnerController
 
     public function action(Request $request)
     {
-        if($request->ajax())
+        dd($request->type);
+        /*if($request->type == 'delete')
         {
-            if($request->type == 'add')
-            {
-                $event = Event::create([
-                    'title'		=>	$request->title,
-                    'start'		=>	$request->start,
-                    'end'		=>	$request->end
-                ]);
+            $event = PartnerUser::find($request->id)->delete();
 
-                return response()->json($event);
-            }
-
-            if($request->type == 'update')
-            {
-                $event = Event::find($request->id)->update([
-                    'title'		=>	$request->title,
-                    'start'		=>	$request->start,
-                    'end'		=>	$request->end
-                ]);
-
-                return response()->json($event);
-            }
-
-            if($request->type == 'delete')
-            {
-                $event = Event::find($request->id)->delete();
-
-                return response()->json($event);
-            }
-        }
+            return response()->json($event);
+        }*/
     }
 
     public function profile(Request $request)

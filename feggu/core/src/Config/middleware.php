@@ -14,7 +14,6 @@ return [
         2 => 'partner.permission',
         3 => 'partner.log',
         4 => 'partner.theme',
-        5 => 'checkdomain',
         6 => 'localization',
         7 => 'partner.partnerId',
         8 => 'tenant'

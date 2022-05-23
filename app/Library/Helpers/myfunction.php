@@ -12,6 +12,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use Jenssegers\Agent\Agent;
 
 function getCurrency(
@@ -221,11 +222,22 @@ function getClassroom()
 }
 function getTypeBed()
 {
-    return [
-        'A'=> 'Type A',
-        'B'=> 'Type B',
-        'C'=> 'Type C',
-    ];
+    /*   return [
+          ['type'=> 'A',
+              'title'=>   'Type A'
+          ],
+          ['type'=> 'B',
+              'title'=>   'Type B'
+          ],
+          ['type'=> 'C',
+              'title'=>   'Type C'
+       ],
+      ];
+   */  return [
+          'A'=> 'Type A',
+          'B'=> 'Type B',
+          'C'=> 'Type C',
+      ];
 }
 function getDepartment(){
     return \Feggu\Core\Partner\Models\DepartmentPartner::where('partner_id',session('partnerId'))->get();
@@ -401,8 +413,7 @@ if (!function_exists('au_token')) {
      */
     function au_token(int $length = 32)
     {
-        $token = Str::random($length);
-        return $token;
+        return Str::random($length);
     }
 }
 
@@ -455,9 +466,34 @@ function statusPatient(){
         2=>'consulting',
         3=>'missing'
     ];
-
 }
 
-
+if (!function_exists('au_uuid') && !in_array('sc_uuid', config('helper_except', []))) {
+    /**
+     * Generate UUID
+     *
+     * @param   [string]  $name
+     * @param   [array]  $param
+     *
+     * @return  [type]         [return description]
+     */
+    function au_uuid()
+    {
+        return (string)\Illuminate\Support\Str::orderedUuid();
+    }
+}
+if (!function_exists('au_generate_id') && !in_array('au_generate_id', config('helper_except', []), true)) {
+    /**
+     * Generate ID
+     *
+     * @param   [type]  $type  [$type description]
+     *
+     * @return string [type]         [return description]
+     */
+    function au_generate_id()
+    {
+           return au_uuid();
+    }
+}
 
 

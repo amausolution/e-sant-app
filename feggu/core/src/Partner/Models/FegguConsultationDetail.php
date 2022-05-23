@@ -11,9 +11,11 @@ class FegguConsultationDetail extends Model
     protected $connection  = AU_CONNECTION;
     protected $guarded     = [];
 
-    protected $casts = [
-        'rapport' => 'array'
-    ];
+
+    public function consultation()
+    {
+        return $this->belongsTo(FegguConsultation::class,'consultation_id','id');
+    }
 
     //Function get text description
     protected static function boot()

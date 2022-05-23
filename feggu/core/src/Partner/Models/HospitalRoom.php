@@ -4,6 +4,7 @@ namespace Feggu\Core\Partner\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Multitenancy\Models\Concerns\UsesTenantConnection;
 
 class HospitalRoom extends Model
 {
@@ -11,7 +12,7 @@ class HospitalRoom extends Model
     public $table = AU_DB_PREFIX.'hospital_room';
     protected $connection = AU_CONNECTION;
 
-    use SoftDeletes;
+    use SoftDeletes, UsesTenantConnection;
 
     public function hospital()
     {
@@ -31,5 +32,17 @@ class HospitalRoom extends Model
             // do the rest of the cleanup...
         });
     }
-
+    public function scopeFilter($query, array $filters)
+    {
+        $query->when($filters['search'] ?? null, function ($query, $search) {
+            $query->where(function ($query) use ($search) {
+                $query->where('room_number', '=', $search)
+                    ->orWhere('name', 'like', '%'.$search.'%');
+            });
+        })->when($filters['status'] ?? null, function ($query, $identifier) {
+            $query->where(function ($query) use ($identifier) {
+                $query->where('status', '=', $identifier);
+            });
+        });
+    }
 }

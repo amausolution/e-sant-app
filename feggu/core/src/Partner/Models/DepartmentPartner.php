@@ -5,6 +5,7 @@ namespace Feggu\Core\Partner\Models;
 
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Multitenancy\Models\Concerns\UsesTenantConnection;
 
 class DepartmentPartner extends Model
 {
@@ -14,7 +15,7 @@ class DepartmentPartner extends Model
     public $timestamps    = false;
     public $table = AU_DB_PREFIX.'partner_department';
     protected $connection = AU_CONNECTION;
-
+    use UsesTenantConnection;
 
 
     public function doctors()

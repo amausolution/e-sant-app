@@ -21,7 +21,6 @@ Route::group(
 );
 Route::group(['prefix' => AU_PARTNER_PREFIX,'middleware' => AU_PARTNER_MIDDLEWARE],function (){
     Route::get('/select_department',function (){
-
         return Inertia::render('SelectDepart',[
             'departments'=>\Partner::user()->areDepartments
         ]);
@@ -47,18 +46,7 @@ Route::group(['prefix' => AU_PARTNER_PREFIX,'middleware' => AU_PARTNER_MIDDLEWAR
         Route::put('/end_consultation',[ ConsultationController::class,'endConsultation'] )->name('end.cons');
         Route::post('/analyse',[ConsultationController::class,'addAnalysis'])->name('analyse.add');
         Route::post('/hospitalized_patient',[ConsultationController::class,'addHospitalisation'])->name('hospitalisation.add');
-//        Route::post('/delete', 'ConsultationController@delete')->name('consultation_patient.delete');
-//        Route::get('/show/{slug}', 'ConsultationController@show')->name('consultation_patient.show');
-//        Route::post('/diagnostic/{id}', 'ConsultationController@updateDiag')->name('diagnostic.edit');
-//        Route::post('/doctor/result/update', 'ConsultationController@updateHealth')->name('doctor.result');
-//        Route::post('/doctor/add/prescription', 'ConsultationController@addPrescription')->name('doctor.add_prescription');
-//        Route::post('/delete/diagnostic', 'ConsultationController@deleteDiag')->name('diagnostic.delete');
-//        Route::post('/doctor/add/analysis', 'ConsultationController@addAnalysis')->name('analyse.store');
-//        Route::post('/doctor/add/pathology', 'ConsultationController@addPathology')->name('pathology.store');
-//        Route::post('/doctor/add/allergy', 'ConsultationController@addAllergy')->name('allergy.store');
-//        Route::post('/doctor/consultation/hospitalized', 'ConsultationController@addHospitalisation')->name('hospitalisation.store');
-//
-  });
+    });
     Route::group(['prefix'=> 'patients'], function (){
        Route::post('/pathology',[\App\Partner\Controllers\PatientController::class,'postPathology'])->name('patient.post.pathology');
        Route::post('/allergy',[\App\Partner\Controllers\PatientController::class,'postAllergy'])->name('patient.post.allergy');
@@ -69,9 +57,28 @@ Route::group(['prefix' => AU_PARTNER_PREFIX,'middleware' => AU_PARTNER_MIDDLEWAR
         Route::post('/store',[\App\Partner\Controllers\DoctorController::class,'store'])->name('doctor.store');
         Route::get('/edit/{id}',[\App\Partner\Controllers\DoctorController::class,'edit'])->name('doctor.edit');
         Route::get('/doctor/{id}',[\App\Partner\Controllers\DoctorController::class,'show'])->name('doctor.show');
-        Route::post('/update/{id}',[\App\Partner\Controllers\DoctorController::class,'update'])->name('doctor.update');
+        Route::put('/update/{id}',[\App\Partner\Controllers\DoctorController::class,'update'])->name('doctor.update');
         Route::put('/reset_password/{id}',[\App\Partner\Controllers\DoctorController::class,'resetPW'])->name('doctor.pw.reset');
-        Route::post('/destroy',[\App\Partner\Controllers\DoctorController::class,'delete'])->name('doctor.destroy');
+        Route::delete('/destroy',[\App\Partner\Controllers\DoctorController::class,'delete'])->name('doctor.destroy');
+    });
+    Route::group(['prefix'=> 'config'], function (){
+        Route::get('/rooms',[\App\Partner\Controllers\SettingController::class,'room'])->name('room.index');
+        Route::get('/rooms/create',[\App\Partner\Controllers\SettingController::class,'roomCreate'])->name('room.create');
+        Route::get('/rooms/edit/{id}',[\App\Partner\Controllers\SettingController::class,'roomEdit'])->name('room.edit');
+        Route::put('/rooms/update/{id}',[\App\Partner\Controllers\SettingController::class,'roomUpdate'])->name('room.update');
+        Route::post('/rooms/store',[\App\Partner\Controllers\SettingController::class,'roomStore'])->name('room.store');
+        Route::delete('/rooms/destroy',[\App\Partner\Controllers\SettingController::class,'roomDestroy'])->name('room.destroy');
+
+        Route::get('/setting',[\App\Partner\Controllers\SettingController::class,'setting'])->name('setting');
+    });
+    Route::group(['prefix'=> 'hospitalisation'], function (){
+        Route::get('/',[\App\Partner\Controllers\HospitalisationController::class,'index'])->name('hospitalisation.index');
+        Route::get('/edit/{id}',[\App\Partner\Controllers\HospitalisationController::class,'edit'])->name('hospitalisation.edit');
+        Route::get('/hospitalized/{id}',[\App\Partner\Controllers\HospitalisationController::class,'editHospitalize'])->name('hospitalisation.hospitalized.edit');
+        Route::get('/hospitalized',[\App\Partner\Controllers\HospitalisationController::class,'hospitalized'])->name('hospitalized.index');
+        Route::post('/hospitalized/patient',[\App\Partner\Controllers\HospitalisationController::class,'storeHospitalisation'])->name('hospitalisation.store');
+      //  Route::post('/hospitalized/patient',[\App\Partner\Controllers\HospitalisationController::class,'setting'])->name('setting');
+        Route::post('/hospitalisation/destroy',[\App\Partner\Controllers\HospitalisationController::class,'destroy'])->name('hospitalisation.destroy');
     });
 });
 

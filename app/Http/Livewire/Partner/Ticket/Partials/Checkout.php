@@ -6,6 +6,7 @@ use Feggu\Core\Partner\Models\DepartmentPartner;
 use Feggu\Core\Partner\Models\FegguConsultation;
 use Feggu\Core\Partner\Models\FegguUser;
 use Feggu\Core\Partner\Partner;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
@@ -166,7 +167,8 @@ $this->reset('insurer','insurer_number','amount','department',
            'phone_number'=>$this->patient->mobil ??'',
            'user_id'=>Partner::user()->id,
            'hospital_id'=>getPartner()->id,
-           'patient_id'=>$this->patient->id
+           'patient_id'=>$this->patient->id,
+           'slug'=>Str::uuid()->toString(),
        ];
         if ($this->mode_payment !=='cash'){
             $this->net = $this->amount - (($this->amount * $this->insurer_percentage)/100);

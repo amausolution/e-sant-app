@@ -6,6 +6,7 @@ namespace App\Partner\Controllers;
 
 use App\Http\Controllers\RootPartnerController;
 use Carbon\Carbon;
+use Feggu\Core\Partner\Models\CategoryAnalysis;
 use Feggu\Core\Partner\Models\CategoryAnalysisDetail;
 use Feggu\Core\Partner\Models\FegguConsultation;
 use Feggu\Core\Partner\Models\FegguConsultationAnalyse;
@@ -30,7 +31,7 @@ class ConsultationController extends RootPartnerController
     public function __construct()
     {
         parent::__construct();
-        $this->groupBlood = DB::table(AU_DB_PREFIX.'feggu_blood')->pluck('blood');
+        $this->groupBlood = DB::connection('patient')->table(AU_DB_PREFIX.'feggu_blood')->pluck('blood');
     }
 
     public function postDepart()
@@ -97,8 +98,7 @@ class ConsultationController extends RootPartnerController
 
         return Inertia::render('Partner/Consultation/Consult',[
             'title' => __('Patient Consultation'),
-            'category_analyses'=>CategoryAnalysisDetail::join(AU_DB_PREFIX.'category_analysis', AU_DB_PREFIX.'category_analysis_detail.category_analysis_id', '=', AU_DB_PREFIX.'category_analysis.id')
-                ->get([AU_DB_PREFIX.'category_analysis_detail.title', AU_DB_PREFIX.'category_analysis_detail.id'])->toArray(),
+            'category_analyses'=>CategoryAnalysisDetail::where('status',1)->get()->map->only('id','title'),
             'consultation' => [
                 'slug'=>$data->slug,
                 'status'=>$data->status,
@@ -241,7 +241,13 @@ class ConsultationController extends RootPartnerController
             'slug'=>Str::uuid()->toString(),
             'type'=>$data['type'],
         ];
-        FegguHospitalisation::create($dataInsert);
+        try {
+            $hospitalisation =  FegguHospitalisation::create($dataInsert);
+        }catch (\Exception $exception){
+            abort($exception);
+        }
+//Str::uuid()->toString()
+      $hospitalisation->consultations()->attach($consultation);
         return redirect()->back();
     }
     public function profile($id)
@@ -267,7 +273,7 @@ class ConsultationController extends RootPartnerController
     public function addAnalysis()
     {
         $data = request()->all();
-
+       // dd($data);
         \request()->validate( [
             'analyses.*.note'=>'nullable|string|max:300',
             'analyses.*.analyse_id'=>'array',
@@ -295,7 +301,6 @@ class ConsultationController extends RootPartnerController
 
         return redirect()->back();
     }
-
     public function updateDiag($id)
     {
         $consultation = FegguConsultation::findOrFail($id);
@@ -377,7 +382,6 @@ class ConsultationController extends RootPartnerController
         $reload=false;
         return response()->json(['status'=>'success', 'message'=>$message, 'reload'=>$reload]);
     }
-
     public function addPathology()
     {
         if (!request()->ajax()) {
@@ -454,7 +458,6 @@ class ConsultationController extends RootPartnerController
           $reload=false;
         return response()->json(['status'=>'success', 'message'=>$message, 'reload'=>$reload]);
     }
-
     public function addPrescription()
     {
         $reload = false;

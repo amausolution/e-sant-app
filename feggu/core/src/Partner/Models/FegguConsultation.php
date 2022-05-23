@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 use Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -18,7 +19,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  */
 class FegguConsultation extends Model //implements HasMedia
 {
-    use Notifiable, SoftDeletes;// InteractsWithMedia;
+    use Notifiable, SoftDeletes, UuidTrait;// InteractsWithMedia;
 
     /**
      * The attributes that are mass assignable.
@@ -27,7 +28,7 @@ class FegguConsultation extends Model //implements HasMedia
      */
     protected $table = AU_DB_PREFIX.'consultation';
     protected $guarded = [];
-    protected $connection = AU_CONNECTION;
+    protected $connection = 'consultation';
 
     protected $casts = [
         'first_diag'=>'array',
@@ -57,6 +58,10 @@ class FegguConsultation extends Model //implements HasMedia
     {
         return $this->hasOne(FegguConsultationDetail::class, 'consultation_id','id');
     }
+    public function payment()
+    {
+        return $this->hasOne(FegguConsultationPayment::class, 'consultation_id','id');
+    }
 
     public function prescriptions()
     {
@@ -68,7 +73,7 @@ class FegguConsultation extends Model //implements HasMedia
     }
     public function hospitalisations()
     {
-        return $this->belongsToMany(FegguHospitalisation::class,AU_DB_PREFIX.'hospitalisation_consultation','consultation_id','hospitalisation_id');
+        return $this->belongsToMany(FegguHospitalisation::class,HospitalisationConsultation::class,'consultation_id','hosp_id');
     }
 
     public function hospitalisation()
@@ -118,12 +123,11 @@ class FegguConsultation extends Model //implements HasMedia
     {
         parent::boot();
         // before delete() method call this
-        static::creating(
-            function ($model){
-               // $this->user_id=1;
-                $model->slug = Str::uuid()->toString();
+        static::creating(function ($model) {
+            if (empty($model->{$model->getKeyName()})) {
+                $model->{$model->getKeyName()} = au_generate_id();
             }
-        );
+        });
         static::deleting(
             function ($model) {
             //Delete custom field

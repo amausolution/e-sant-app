@@ -20,16 +20,20 @@ class PartnerUser extends Authenticatable
     protected $hidden  = [
         'password', 'remember_token',
     ];
-    
+
     protected static $allPermissions = null;
     protected static $allViewPermissions = null;
     protected static $canChangeConfig = null;
     protected static $listPartnerId = null;
     protected static $listPartner = null;
+
+
     protected $appends = ['name'];
     protected $casts = [
       'timetable'=>'array',
     ];
+
+
     public function job()
     {
       return $this->belongsTo(FegguProfession::class,'profession','id');
@@ -46,7 +50,7 @@ class PartnerUser extends Authenticatable
      */
     public function roles()
     {
-        return $this->belongsToMany(PartnerRole::class, AU_DB_PREFIX.'partner_role_user', 'user_id', 'role_id');
+        return $this->belongsToMany(PartnerRole::class, PartnerRoleUser::class, 'user_id', 'role_id');
     }
 
     /**
@@ -86,7 +90,7 @@ class PartnerUser extends Authenticatable
      */
     public function permissions()
     {
-        return $this->belongsToMany(PartnerPermission::class, AU_DB_PREFIX.'partner_user_permission', 'user_id', 'permission_id');
+        return $this->belongsToMany(PartnerPermission::class, PartnerPermissionUser::class, 'user_id', 'permission_id');
     }
 
     /**
@@ -111,11 +115,15 @@ class PartnerUser extends Authenticatable
         parent::boot();
 
         static::deleting(function ($model) {
-            if (in_array($model->id, AU_GUARD_PARTNER)) {
+            if (in_array($model->id, AU_GUARD_PARTNER,true)) {
                 return false;
             }
             $model->roles()->detach();
             $model->permissions()->detach();
+            $model->specializations()->detach();
+            $model->areDepartments()->delete();
+            $model->appointments()->delete();
+            $model->patients()->delete();
         });
         static::creating(function ($model) {
             $model->partner_id = session('partnerId');
@@ -125,12 +133,13 @@ class PartnerUser extends Authenticatable
 
     /**
      * Create new customer
-     * @return [type] [description]
+     * @param $dataInsert array
+     * @return  [type] [description]
      */
     public static function createUser($dataInsert)
     {
-        $dataUpdate = au_clean($dataInsert);
-        return self::create($dataUpdate);
+        $dataUsers = au_clean($dataInsert);
+        return self::create($dataUsers);
     }
 
     /**

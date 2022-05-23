@@ -6,12 +6,14 @@ use Feggu\Core\Partner\Partner;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Http\Request;
+use Spatie\Multitenancy\Models\Concerns\UsesTenantConnection;
 
 class PartnerPermission extends Model
 {
     public $table = AU_DB_PREFIX.'partner_permission';
     protected $fillable = ['name', 'slug', 'http_uri'];
 
+    use UsesTenantConnection;
     /**
      * Permission belongs to many roles.
      *
@@ -19,7 +21,7 @@ class PartnerPermission extends Model
      */
     public function roles()
     {
-        return $this->belongsToMany(PartnerRole::class, AU_DB_PREFIX.'partner_role_permission', 'permission_id', 'role_id');
+        return $this->belongsToMany(PartnerRole::class, PartnerPermissionUser::class, 'permission_id', 'role_id');
     }
 
     /**

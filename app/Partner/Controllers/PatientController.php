@@ -24,7 +24,7 @@ class PatientController extends RootPartnerController
     public function __construct()
     {
         parent::__construct();
-        $this->groupBlood = DB::table(AU_DB_PREFIX.'feggu_blood')->pluck('blood');
+        $this->groupBlood = DB::connection('patient')->table(AU_DB_PREFIX.'feggu_blood')->pluck('blood');
     }
     public function index()
     {

@@ -84,8 +84,9 @@
                 <div class="dropdown-menu dropdown-menu-right">
                     <Link class="dropdown-item" :href="route('doctor.edit',{id: doctor.id})"><i class="fa fa-pencil m-r-5"></i>
                         {{__('Edit')}}</Link>
-                    <a href="javascript:void(0);" class="dropdown-item delete-btn"><i class="fa fa-trash-o m-r-5"></i>
-                        {{__('Delete')}}</a>
+                    <Link :href="route('doctor.destroy',{id:doctor.id})" method="DELETE" as="button" type="button" class="dropdown-item delete-btn"><i class="fa fa-trash-o m-r-5"></i>
+                        {{__('Delete')}}
+                    </Link>
                 </div>
             </div>
             <h4 class="user-name m-t-10 mb-0 text-ellipsis">
@@ -146,6 +147,7 @@
             reset() {
                 this.form = mapValues(this.form, () => null)
             },
+
         },
     }
 </script>

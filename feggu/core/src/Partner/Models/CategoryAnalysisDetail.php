@@ -11,7 +11,7 @@ class CategoryAnalysisDetail extends Model
 
     public $table = AU_DB_PREFIX . 'category_analysis_detail';
     protected $guarded = [];
-    protected $connection = AU_CONNECTION;
+    protected $connection = 'consultation';
 
     public function category()
     {

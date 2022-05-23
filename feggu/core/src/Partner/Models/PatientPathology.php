@@ -13,11 +13,15 @@ class PatientPathology extends Model
     use SoftDeletes;
     public $table = AU_DB_PREFIX.'patient_pathology';
     protected $guarded = [];
-    protected $connection = AU_CONNECTION;
+    protected $connection = 'patient';
 
     public function doctor()
     {
         return $this->belongsTo(FegguDoctor::class,'doctor_id','id');
+    }
+    public function patient()
+    {
+        return $this->belongsTo(FegguUser::class,'patient_id','id');
     }
     public function hospital()
     {

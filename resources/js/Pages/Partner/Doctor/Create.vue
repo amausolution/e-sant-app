@@ -28,7 +28,8 @@
                             <div class="form-group" >
                                 <label class="control-label mx-8">{{__('Avatar')}}</label>
                                 <div class="col-md-5 flex items-center">
-                                   <InputAvatar :default-src="defaultAvatar" v-model="form.avatar" />
+                                    <input type="file" @input="form.avatar = $event.target.files[0]" />
+                       <!--          <InputAvatar :default-src="defaultAvatar" v-model="form.avatar" />-->
                                 </div>
                                 <span v-if="form.errors.avatar">{{ form.errors.avatar}}</span>
                             </div>
@@ -305,11 +306,12 @@
                 this.url = URL.createObjectURL(file);
             },
             submit() {
-                if (this.$refs.photo) {
+              /*  if (this.$refs.photo) {
                     this.form.avatar = this.$refs.photo.files[0];
-                }
+                }*/
 
                  this.form.post(route('doctor.store'),{
+                     preserveScroll: (page) => Object.keys(page.props.errors).length,
                  })
             },
 

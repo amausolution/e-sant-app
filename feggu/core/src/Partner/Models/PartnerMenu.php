@@ -3,6 +3,7 @@ namespace Feggu\Core\Partner\Models;
 
 use DB;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Multitenancy\Models\Concerns\UsesTenantConnection;
 
 class PartnerMenu extends Model
 {
@@ -11,6 +12,7 @@ class PartnerMenu extends Model
     private static $getList = null;
     private static $getListDisplay = null;
 
+    use UsesTenantConnection;
     public static function getListAll()
     {
         if (self::$getList == null) {

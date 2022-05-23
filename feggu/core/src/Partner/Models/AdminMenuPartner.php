@@ -3,10 +3,13 @@ namespace Feggu\Core\Partner\Models;
 
 use DB;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Multitenancy\Models\Concerns\UsesTenantConnection;
 
 class AdminMenuPartner extends Model
 {
+   // use UsesTenantConnection;
     public $table = AU_DB_PREFIX . 'admin_menu_partner';
+    protected $connection = AU_CONNECTION;
     protected $guarded = [];
     private static $getList = null;
     private static $getListDisplay = null;

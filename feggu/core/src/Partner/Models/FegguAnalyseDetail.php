@@ -9,7 +9,7 @@ class FegguAnalyseDetail extends Model
 {
     public $timestamps     = false;
     public $table          = AU_DB_PREFIX.'consultation_analyse_detail';
-    protected $connection  = AU_CONNECTION;
+    protected $connection  = 'consultation';
     protected $guarded     = [];
 
 

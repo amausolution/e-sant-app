@@ -10,6 +10,7 @@ use Auth;
 //use Laravel\Passport\HasApiTokens;
 use Feggu\Core\Partner\Models\FegguCustomFieldDetail;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 
 class FegguUser extends Authenticatable
@@ -21,9 +22,9 @@ class FegguUser extends Authenticatable
      *
      * @var array
      */
-    protected $table = AU_DB_PREFIX.'feggu_user';
+    protected $table = AU_DB_PREFIX.'patient';
     protected $guarded = [];
-    protected $connection = AU_CONNECTION;
+    protected $connection = 'patient';
     private static $profile = null;
     /**
      * The attributes that should be hidden for arrays.
@@ -37,11 +38,15 @@ class FegguUser extends Authenticatable
         'name',
     ];
 
+    public function detail()
+    {
+        return $this->hasOne(FegguUserDetail::class,'patient_id','id');
+    }
+
     public function hospitals()
     {
         return $this->belongsToMany(FegguPartner::class, FegguPatient::class, 'patient_id', 'hospital_id');
     }
-
 
     public function doctors()
     {
@@ -108,6 +113,9 @@ class FegguUser extends Authenticatable
         parent::boot();
         static::creating(function ($patient){
             $patient->partner_id = session('partnerId');
+//            $patient->doc_number = generateDocNumber($patient->first_name,$patient->last_name,$patient->id);
+//            $patient->matricule = generateDocNumber($patient->first_name,$patient->last_name,$patient->id);
+            $patient->slug = Str::uuid()->toString();
         });
         // before delete() method call this
         static::deleting(

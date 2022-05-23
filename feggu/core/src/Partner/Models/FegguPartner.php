@@ -1,6 +1,7 @@
 <?php
 namespace Feggu\Core\Partner\Models;
 
+use App\Partner\Models\Setting;
 use App\Partner\Models\SettingPartner;
 use Feggu\Core\Admin\Models\AdminConfig;
 use Illuminate\Database\Eloquent\Model;
@@ -26,7 +27,7 @@ class FegguPartner extends Model
 
     public function setting()
     {
-        return $this->hasOne(SettingPartner::class,'partner_id','id');
+        return $this->hasOne(Setting::class,'partner_id','id');
     }
     public function laboratory()
     {

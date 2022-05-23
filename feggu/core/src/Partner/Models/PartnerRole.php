@@ -4,15 +4,18 @@ namespace Feggu\Core\Partner\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Spatie\Multitenancy\Models\Concerns\UsesTenantConnection;
 
 class PartnerRole extends Model
 {
     protected $fillable = ['name', 'slug'];
     public $table       = AU_DB_PREFIX.'partner_role';
 
+    use UsesTenantConnection;
+
     public function administrators()
     {
-        return $this->belongsToMany(PartnerUser::class, AU_DB_PREFIX.'partner_role_user', 'role_id', 'user_id');
+        return $this->belongsToMany(PartnerUser::class, PartnerRoleUser::class, 'role_id', 'user_id');
     }
 
     /**
@@ -22,7 +25,7 @@ class PartnerRole extends Model
      */
     public function permissions()
     {
-        return $this->belongsToMany(PartnerPermission::class, AU_DB_PREFIX.'partner_role_permission', 'role_id', 'permission_id');
+        return $this->belongsToMany(PartnerPermission::class, PartnerRolePermission::class, 'role_id', 'permission_id');
     }
 
     /**
