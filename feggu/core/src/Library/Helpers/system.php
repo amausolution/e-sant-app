@@ -75,7 +75,7 @@ if (!function_exists('au_config_admin') && !in_array('au_config_admin', config('
 }
 
 
-if (!function_exists('au_config_partner') && !in_array('au_config_partner', config('helper_except', []))) {
+/*if (!function_exists('au_config_partner') && !in_array('au_config_partner', config('helper_except', []))) {
     /**
      * Get config value in partner with session partner id
      * Default value is only used if the config key does not exist (including null values)
@@ -85,11 +85,11 @@ if (!function_exists('au_config_partner') && !in_array('au_config_partner', conf
      *
      * @return  [type]      [return description]
      */
-    function au_config_partner($key = null, $default = null)
+  /*  function au_config_partner($key = null, $default = null)
     {
         return au_config($key, session('partnerId'), $default);
     }
-}
+}*/
 
 
 if (!function_exists('au_config_global') && !in_array('au_config_global', config('helper_except', []))) {

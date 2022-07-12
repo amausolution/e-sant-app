@@ -19,6 +19,8 @@
         "laravel/sanctum": "^2.14.1",
         "laravel/tinker": "^2.7",
         "livewire/livewire": "^2.10",
+        "milon/barcode": "^9.0",
+        "simplesoftwareio/simple-qrcode": "~4",
         "spatie/laravel-medialibrary": "^10.3",
         "spatie/laravel-multitenancy": "^2.0",
         "spatie/laravel-pjax": "^2.1",

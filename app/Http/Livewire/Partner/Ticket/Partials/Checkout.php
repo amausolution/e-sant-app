@@ -31,7 +31,7 @@ class Checkout extends Component
 
     public function resetFields()
     {
-$this->reset('insurer','insurer_number','amount','department',
+       $this->reset('insurer','insurer_number','amount','department',
     'insurer_percentage','mode_payment','exp_date','patient','net','assurance','is_apply');
     }
     public function mount()
@@ -165,6 +165,7 @@ $this->reset('insurer','insurer_number','amount','department',
            'address'=>$this->address,
            'type_payment'=>$this->mode_payment,
            'phone_number'=>$this->patient->mobil ??'',
+          // 'doc_number'=>$this->patient->doc_number ??'',
            'user_id'=>Partner::user()->id,
            'hospital_id'=>getPartner()->id,
            'patient_id'=>$this->patient->id,

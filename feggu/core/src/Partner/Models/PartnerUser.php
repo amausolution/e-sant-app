@@ -75,7 +75,7 @@ class PartnerUser extends Authenticatable
 
     public function specializations()
     {
-        return $this->belongsToMany(FegguSpecialization::class, AU_DB_PREFIX.'feggu_speciality_doctor', 'doctor_id', 'speciality_id');
+        return $this->belongsToMany(FegguSpecialization::class, PartnerUserSpeciality::class, 'doctor_id', 'speciality_id');
     }
 
     public function areDepartments()

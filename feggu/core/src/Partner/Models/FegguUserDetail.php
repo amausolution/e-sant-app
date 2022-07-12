@@ -20,7 +20,7 @@ class FegguUserDetail extends Model
 
     protected $table = AU_DB_PREFIX.'patient_detail';
     protected $guarded = [];
-    protected $connection = 'patient';
+    protected $connection = 'consultation';
     public $timestamps = false;
 
     public function patient()

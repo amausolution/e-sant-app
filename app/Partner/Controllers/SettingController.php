@@ -187,10 +187,6 @@ class SettingController extends RootPartnerController
         ],[]);
 
 
-
-        $data = au_clean($data,[]);
-
-
         $dataUpdate = [
             'hospital_id'=>\Partner::user()->partner_id,
             'room_number'=>$data['room_number'],
@@ -204,6 +200,7 @@ class SettingController extends RootPartnerController
             'bed_accompanying'=>!empty($data['bed_accompanying'])?1:0,
         ];
     //  dd($data['beds']);
+        $dataUpdate = au_clean($dataUpdate,[],true);
         $bed_rooms = $data['beds']??[];
         $room->update($dataUpdate);
         $room->beds()->delete();

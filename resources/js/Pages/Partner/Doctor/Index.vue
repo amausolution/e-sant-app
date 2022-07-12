@@ -14,17 +14,6 @@
             </div>
         </page-header>
 
-<!--
-        <div class="flex items-center justify-between mb-6">
-            <search-filter v-model="form.search" class="mr-4 w-full max-w-lg" @reset="reset">
-                <label class="block mt-4 text-gray-700">{{__('Gender')}}:</label>
-                <select v-model="form.gender" class="form-select mt-1 w-full">
-                    <option :value="null" />
-                    <option value="1">{{__('Male')}}</option>
-                    <option value="0">{{ __('Female')}}</option>
-                </select>
-            </search-filter>
-        </div>-->
         <!-- Search Filter -->
         <div class="row filter-row">
             <div class="col-sm-6 col-md-3">
@@ -147,7 +136,6 @@
             reset() {
                 this.form = mapValues(this.form, () => null)
             },
-
         },
     }
 </script>

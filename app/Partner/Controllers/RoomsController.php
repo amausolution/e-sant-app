@@ -119,7 +119,7 @@ class RoomsController extends RootPartnerController
         $data = request()->all();
         // dd($id);
         $dataOriginal = request()->all();
-        $validator = Validator::make($dataOriginal , [
+      \Illuminate\Support\Facades\Request::validate([
             'hospital_id'=>'required',
             'room_number'=>'required|numeric|min:1|unique:'.AU_DB_PREFIX.'hospital_room,id,'.$id,
             'price'=>'required|numeric|min:1',
@@ -133,14 +133,10 @@ class RoomsController extends RootPartnerController
             //  'bed.status.*' => 'required_with:bed',
             'bed.type.*' => 'required_with:bed',
         ],[]);
-        if ($validator->fails()){
-
-            $notify[] = ['success', $validator->errors()];
-            return redirect()->back()->withNotify($notify);
-        }
 
 
-        $data = au_clean($data,[]);
+
+
         $bed_rooms = $data['bed']??[];
         $dataInsert = [
             'hospital_id'=>$data['hospital_id'],
@@ -154,6 +150,7 @@ class RoomsController extends RootPartnerController
             'wc_in'=>!empty($data['wc_in'])?1:0,
             'bed_accompanying'=>!empty($data['bed_accompanying'])?1:0,
         ];
+        $dataInsert = au_clean($dataInsert,[],true);
         $room = HospitalRoom::find($id);
         $room->update($dataInsert);
         $room->beds()->delete();
@@ -172,8 +169,8 @@ class RoomsController extends RootPartnerController
                 }
             }
         }
-            $room->beds()->saveMany($insertBed);
-            $message = __('Room and Beds updated success');
+        $room->beds()->saveMany($insertBed);
+        $message = __('Room and Beds updated success');
         $notify[] = ['success', $message];
         return redirect()->route('room.index')->withNotify($notify);
     }

@@ -15,6 +15,8 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Request;
+use Inertia\Inertia;
 
 
 class PatientController extends RootPartnerController
@@ -29,16 +31,90 @@ class PatientController extends RootPartnerController
     public function index()
     {
         $partnerId = session('partnerId');
+       // dd(getPartner()->consultations);
         if (!$partnerId){
             abort(404);
         }
-        return view($this->templatePathPartner.'screen.list_patient',[
-            'title'=>au_language_render('partner.patient.list'),
-            'subTitle' => '',
-            'icon' => 'fa fa-indent',
-            'title_form' => '<i class="fa fa-plus" aria-hidden="true"></i> ' . au_language_render('partner.menu.create'),
+        return Inertia::render('Partner/Patient/Index',[
+            'title'=>__('Partner Patient List'),
+            'genders'=> genders(),
+            'patients'=> FegguConsultation::select('patient_id', DB::raw('count(*) as total'))
+            ->where('hospital_id',$partnerId)->groupBy('patient_id')->with('patient')->filter(Request::only('search','identifier','gender'))
+                    ->paginate(20)
+                    ->withQueryString()->through(fn ($patient)=> [
+                    'avatar'=>$patient->patient->getAvatar(),
+                    'name'=>$patient->patient->name,
+                    'live_cycle'=>$patient->patient->live_cycle,
+                    'count'=>$patient->total,
+                    'id'=>$patient->patient->slug,
+                    'phone'=>$patient->patient->mobil,
+                    'birthday'=>showDate($patient->patient->birthday),
+                    'doc_number'=>$patient->patient->doc_number,
+                    'phone_urgency'=>$patient->patient->phone_urgency,
+                    'gender'=>gender()[$patient->patient->gender],
+
+                ]),
+            'filters' => \request()->all('search','identifier','gender'),
+
         ]);
     }
+    /**
+     * @param $id
+     * @return \Inertia\Response
+     */
+    public function show($id)
+    {
+        //dd($id);
+        $patient = FegguUser::where('slug',$id)->first();
+        if (!$patient){
+            return 'no data';
+        }
+
+        // dd($patient);
+        return Inertia::render('Partner/Patient/Show',[
+            'title' => __('Partner Patient Profile'),
+            'patient' => [
+                'id'=>$patient->id,
+                'name'=>$patient->name,
+                'phone'=>$patient->mobil,
+                'doc_number'=>$patient->doc_number,
+                'address'=>$patient->address,
+                'email'=>$patient->email,
+                'live_cycle'=>$patient->live_cycle,
+                'avatar'=>$patient->getAvatar(),
+                'group_blood'=>$patient->blood_group,
+                'allergies' =>$patient->allergies()->get()->map(function ($pathology){
+                    return  [
+                        'id'=>$pathology->id,
+                        'allergy'=>$pathology->allergy,
+                        'result'=>$pathology->result,
+                        'observation'=>$pathology->observation,
+                        'date'=>showDate($pathology->created_at) ,
+                    ];
+                }),
+                'pathologies'=>$patient->pathologies()->get()->map(function ($pathology){
+                    return  [
+                        'id'=>$pathology->id,
+                        'pathology'=>$pathology->pathology,
+                        'level'=>$pathology->level,
+                        'observation'=>$pathology->observation,
+                        'date'=>showDate($pathology->created_at) ,
+                    ];
+                }),
+            ],
+            'consultations' => FegguConsultation::where('hospital_id',session('partnerId'))->where('patient_id',$patient->id)->orderBy('created_at','desc')->paginate(20)->through(fn ($consultation)=> [
+                'id'=>$consultation->id,
+                'amount_ticket'=>$consultation->amount_ticket,
+                'status'=>$consultation->status,
+                'result'=>$consultation->result,
+                'view'=>$consultation->view_at,
+                'date'=>showDate($consultation->created_at),
+            ])
+        ]);
+    }
+
+
+
 
     public function postPathology()
     {
@@ -347,23 +423,7 @@ class PatientController extends RootPartnerController
         return $response;
     }
 
-    /**
-     * @param $id
-     * @return Application|Factory|View
-     */
-    public function show($id)
-    {
-        //dd($id);
-        $patient = FegguUser::where('id',$id)->first();
-        // dd($patient);
-        return view($this->templatePathPartner.'screen.patient.profile_patient',[
-            'title' => au_language_render('partner.patient.profile'),
-            'subTitle' => au_language_render('profile_patient'),
-            'title_description' => '',
-            'icon' => 'fa fa-plus',
-            'patient' => $patient,
-        ]);
-    }
+
     public function Consultation($id)
     {
         //dd($id);
@@ -382,12 +442,62 @@ class PatientController extends RootPartnerController
         //dd($id);
         $consultation = FegguConsultation::with(['prescriptions','analyses'])->where('id',$id)->first();
         // dd($consultation);
-        return view($this->templatePathPartner.'screen.patient.show_consultation',[
+        return Inertia::render('Partner/Patient/DetailConsultation',[
             'title' => au_language_render('partner.patient.consultation'),
-            'subTitle' => au_language_render('profile_patient'),
-            'title_description' => '',
-            'icon' => 'fa fa-plus',
-            'consultation' => $consultation,
+            'consultation' => [
+                'patient'=>$consultation->patient->slug,
+                'doctor_name'=>$consultation->doctor->name??'',
+                'doctor'=>$consultation->doctor->matricule??'',
+                'identifier'=>$consultation->identifier,
+                'amount_ticket'=>$consultation->amount_ticket,
+                'ticket'=>$consultation->ticket,
+                'discount'=>$consultation->discount,
+                'address'=>$consultation->address,
+                'first_diag'=>$consultation->first_diag,
+                'diagnostic'=>$consultation->diagnostic,
+                'result'=>$consultation->result,
+                'age'=>$consultation->age,
+                'date'=>showDate($consultation->created_at),
+                'status'=>$consultation->status,
+                'view'=>$consultation->view_at,
+                'department'=>$consultation->department->title,
+                'cash_desk'=>$consultation->cash_desk,
+                'net_ticket'=>$consultation->net_ticket,
+                'type_payment'=>typePayment()[$consultation->type_payment],
+                'analyses'=> $consultation->analyses()->get()->map(function ($analyse){
+                    return [
+                        'slug'=>$analyse->slug,
+                        'note'=>$analyse->note,
+                        'status'=>$analyse->status,
+                        'analyse'=>json_decode($analyse->analyse,true)['title'],
+                        'date'=>showDate($analyse->created_at),
+                        'emergency'=>$analyse->emergency,
+                        'doctor'=>$analyse ? $analyse->doctor->matricule:null,
+                        'doctor_name'=>$analyse ?? $analyse->doctor->name,
+                        'details'=>$analyse->results()->get()->map(function ($detail){
+                            return  [
+                                'result'=>$detail->result,
+                                'note'=>au_html_render($detail->note),
+                                'date'=>$detail->created_at,
+                                'user'=>$detail->partner->matricule,
+                                'labo'=>$detail->laboratory->title,
+                            ];
+                        })
+
+                    ];
+                }),
+                'prescriptions'=>$consultation->prescriptions()->get()->map(function ($prescription){
+                    return [
+                          'id'=>$prescription->id,
+                          'label'=>$prescription->label,
+                          'quantity'=>$prescription->quantity,
+                          'dosage'=>$prescription->dosage,
+                          'dosage_text'=>getDosageText($prescription->dosage_text),
+                          'durations'=>$prescription->duration,
+                          'pharmacy'=>$prescription->pharmacy->title??''
+                    ];
+                }),
+            ],
         ]);
     }
 }

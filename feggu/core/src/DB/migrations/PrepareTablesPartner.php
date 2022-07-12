@@ -436,7 +436,7 @@ class PrepareTablesPartner extends Migration
                 $table->integer('receive');
                 $table->integer('balance');
                 $table->integer('discount');
-                $table->string('type_intervention')->comment('consultation,hospitalisation,analyse,thérapie');
+                $table->string('type_intervention')->comment('consultation,hospitalisation,Analyse,thérapie');
                 $table->text('payment_method');
                 $table->text('payed_by');
                 $table->text('payed_by_piece');

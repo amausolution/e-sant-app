@@ -313,8 +313,8 @@ class DoctorController extends RootPartnerController
     public function show($id,Request $request)
     {
         $doctor = PartnerUser::find($id);
-        $data = Appointment::query()->get(['id', 'title','start', 'end'])->toArray();
-        return view($this->templatePathPartner.'doctor.doctor_about',[
+        $data = Appointment::query()->get(['id', 'time','date', 'note'])->toArray();
+        return inertia('Partner/Doctor/Show',[
             'title' => au_language_render('partner.doctor.profile'),
             'subTitle' => au_language_render('profile_doctor'),
             'title_description' => '',

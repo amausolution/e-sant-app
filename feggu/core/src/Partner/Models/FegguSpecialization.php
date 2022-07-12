@@ -5,14 +5,15 @@ namespace Feggu\Core\Partner\Models;
 
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Multitenancy\Models\Concerns\UsesTenantConnection;
 
 class FegguSpecialization extends Model
 {
     public $timestamps = false;
     public $table = AU_DB_PREFIX.'feggu_speciality';
     protected $guarded = [];
-    protected $connection = AU_CONNECTION;
-    use ModelTrait;
+
+    use ModelTrait,UsesTenantConnection;
 
     protected $appends = ['title'];
 

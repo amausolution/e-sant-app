@@ -6,7 +6,7 @@
         <!-- Logo -->
         <div class="header-left">
             <Link :href="route('partner.home')" class="logo">
-                <img :src="getPartner.logo" width="40" height="40" alt="" />
+                <img :src="logo" width="40" height="40" alt="" />
             </Link>
         </div>
         <!-- /Logo -->
@@ -20,7 +20,7 @@
 
         <!-- Header Title -->
         <div class="page-title-box">
-            <h3>{{getPartner.title_partner ?? __('Admin Panel')}}</h3>
+            <h3>{{partner.title ?? __('Admin Panel')}}</h3>
         </div>
         <!-- /Header Title -->
         <a id="mobile_btn" class="mobile_btn" href="#sidebar"><i class="fa fa-bars"></i></a>
@@ -78,7 +78,7 @@
                                 <a href="activities.html">
                                     <div class="media">
 												<span class="avatar">
-													<img alt="" :src="partner.avatar">
+													<img alt="" :src="avatar">
 												</span>
                                         <div class="media-body">
                                             <p class="noti-details"><span class="noti-title">John Doe</span> added new task <span class="noti-title">Patient appointment booking</span></p>
@@ -256,9 +256,9 @@
 
             <li class="nav-item dropdown has-arrow main-drop">
                 <a href="#" class="dropdown-toggle nav-link" data-toggle="dropdown">
-							<span class="user-img"><img :src="partner.avatar" alt="">
+							<span class="user-img"><img :src="avatar" alt="">
 							<span class="status online"></span></span>
-                    <span>{{partner.name}}</span>
+                    <span>{{user.name}}</span>
                 </a>
                 <div class="dropdown-menu">
                     <a class="dropdown-item" :href="route('partner.profile')">{{__('My Profile')}}</a>
@@ -293,9 +293,13 @@
 
     export default {
         setup() {
-            const partner = computed(() => usePage().props.value.partner)
-            const getPartner = computed(() => usePage().props.value.getPartner)
-            return { partner, getPartner }
+           // const partner = computed(() => usePage().props.value.partner)
+            const partner = computed(() => usePage().props.value.auth.partner)
+            const user = computed(() => usePage().props.value.auth.user)
+            const avatar = computed(() => usePage().props.value.avatar)
+            const logo = computed(() => usePage().props.value.logo)
+           // const getPartner = computed(() => usePage().props.value.getPartner)
+            return { user,logo,avatar,partner }
         },
         name: "Header",
         components : {

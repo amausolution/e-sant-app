@@ -60,7 +60,7 @@ class ConsultationController extends RootPartnerController
                 ->whereDate('created_at', '=', date('Y-m-d'))
                 ->where('department_id',session('departmentIds'))
                 ->filter(Request::only('search', 'trashed'))
-                ->paginate(1)
+                ->paginate(20)
                 ->withQueryString()
                 ->through(fn ($consult) => [
                     'id' => $consult->id,
@@ -77,10 +77,10 @@ class ConsultationController extends RootPartnerController
         ]);
     }
 
-    public function edit($slug)
+    public function edit($id)
     {
 
-        $data = FegguConsultation::where('slug',$slug)->with(['patient'])->first();
+        $data = FegguConsultation::find($id);
 
         if (!$data){
             abort(404);
@@ -91,7 +91,7 @@ class ConsultationController extends RootPartnerController
                 'ip_doctor'=>\request()->ip(),
                 'doctor_user_agent'=>\request()->server('HTTP_USER_AGENT'),
                 'view_at'=>Carbon::now()->tz('Africa/Dakar')->format('H:i:m'),
-                'status'=>2
+                'status'=>1
             ];
             $data->update($dataUpdate);
         }
@@ -100,14 +100,14 @@ class ConsultationController extends RootPartnerController
             'title' => __('Patient Consultation'),
             'category_analyses'=>CategoryAnalysisDetail::where('status',1)->get()->map->only('id','title'),
             'consultation' => [
-                'slug'=>$data->slug,
+                'id'=>$data->id,
                 'status'=>$data->status,
                 'ticket'=>$data->ticket,
                 'patient_id'=>$data->patient_id,
                 'department'=> showDepart($data->department_id),
                 'first_diag'=>$data->first_diag??[],
                 'age'=>$data->age,
-                'diagnostic'=>$data->diagnostic??[],
+                'diagnostic'=>$data->diagnostic ? au_html_render($data->diagnostic):null,
                 'gender'=>gender()[$data->patient->gender],
                 'hospital'=>$data->hospital->getTitle(),
                 'name'=>$data->patient->name,
@@ -120,7 +120,15 @@ class ConsultationController extends RootPartnerController
                 'birthday'=> showDate($data->patient->birthday),
                 'godfather'=>$data->godfather,
                 'avatar'=>$data->patient->getAvatar(),
-                'analyses'=>$data->analyses,
+                'analyses'=>$data->analyses()->get()->map(function ($analyse){
+                    return [
+                        'id'=>$analyse->id,
+                        'title'=>json_decode($analyse->analyse,true)['title'],
+                        'status'=>$analyse->status,
+                        'note'=>$analyse->note,
+                        'emergency'=>$analyse->emergency
+                    ];
+                }),
                 'prescriptions'=>$data->prescriptions??[],
                 'hospitalisation'=>$data->hospitalisation??[],
                 'allergies'=>$data->patient->allergies,
@@ -131,111 +139,98 @@ class ConsultationController extends RootPartnerController
         ]);
     }
 
-    public function postFD()
+    public function store()
     {
-        $data = \request()->all();
-        $consultation = FegguConsultation::where('slug',$data['idc'])->first();
+        $data = Request::all();
+       // dd($data);
+        $consultation = FegguConsultation::find($data['idC']);
         if (!$consultation){
             return 'no data';
         }
-        $dataUpdate = [];
+         //dd($data);
+        Request::validate([
+            'diagnostic'=>'required',
+            'idC'=>'required',
+        ],[]);
+        $firstDiag = [];
         if (isset($data['tension'])){
-            $dataUpdate['tension']= $data['tension'];
+            $firstDiag['tension']= $data['tension'];
         }
         if (isset($data['temperature'])){
-            $dataUpdate['temperature']= $data['temperature'];
+            $firstDiag['temperature']= $data['temperature'];
         }
         if (isset($data['sugar'])){
-            $dataUpdate['sugar']= $data['sugar'];
+            $firstDiag['sugar']= $data['sugar'];
         }
-        if (!empty($dataUpdate)){
-            $consultation->update(['first_diag'=>$dataUpdate]);
-        }
+        $dataConsultation = [
+            'diagnostic'=>$data['diagnostic'],
+            'result'=>$data['result'],
+            // 'first_diag'=>$firstDiag,
+            'hospital_id'=>session('partnerId'),
+            'patient_id'=>$consultation->patient_id,
+            'slug'=>Str::uuid()->toString(),
+            'ip_doctor'=>\request()->ip(),
+            'doctor_user_agent'=>\request()->server('HTTP_USER_AGENT'),
+            'view_at'=>Carbon::now()->tz('Africa/Dakar')->format('H:i:m'),
+            'status'=>2,
+            'age'=> showAge($consultation->patient->birthday),
+            'doctor_id'=>\Partner::user()->id,
+        ];
 
-        return redirect()->back();
-    }
-
-    public function postDiag(Request $request)
-    {
-        $data = \request()->all();
-        $dataDiag = [];
-        Validator::make($data,[
-            'idconsult'=>'required',
-            'diagnostic'=>'required'
-        ],[]);
-
-       $consultation = FegguConsultation::where('slug',$data['idconsult'])->first();
-       $diag  = $consultation->diagnostic;
-       //  dd($diag);
-       if (!$consultation){
-           return 'no data';
-       }
-       $diag []=$data['diagnostic'];
-
-       //dd($diag);
-       if (isset($data['diagnostic']) && !empty($data['diagnostic'])){
-           $consultation->update(['diagnostic'=>$diag]);
-       }
-
-       return redirect()->back();
-    }
-
-    public function postPrescription()
-    {
-        //dd(\request()->all());
-        $data = \request()->all();
-        request()->validate([
-            'idcons' => ['required'],
-            'prescriptions.*.qte' => ['required', 'max:50','numeric'],
-            'prescriptions.*.label' => ['required', 'max:100', 'string'],
-            'prescriptions.*.dosage' => ['nullable', 'max:50', 'string'],
-            'prescriptions.*.dosageText' => ['nullable', 'max:50', 'array'],
-            'prescriptions.*.duration' => ['nullable', 'max:50', 'string'],
-        ]);
-        $prescriptions =  $data['prescriptions'];
-        $consultation = FegguConsultation::where('slug',$data['idcons'])->first();
-        if (!$consultation){
-            return 'no data';
-        }
+        $dataConsultation = au_clean($dataConsultation,[]);
+        $dataConsultation['first_diag']=$firstDiag;
+     //   dd($dataConsultation);
+        $consultation->update($dataConsultation);
+        $prescriptions= $data['prescriptions']??[];
         $arrPrescript = [];
         foreach ($prescriptions as $key => $prescript) {
             if ($prescript) {
                 $arrPrescript[] = new FegguConsultationPrescription([
+                    'doctor_id'=> \Partner::user()->id,
                     'label' => $prescript['label'],
-                    'quantity' => $prescript['qte'],
+                    'quantity' => $prescript['quantity'],
                     'dosage' => $prescript['dosage'],
                     'dosage_text' => $prescript['dosageText'],
                     'duration' => $prescript['duration'],
                 ]);
             }
         }
-        $consultation->prescriptions()->saveMany($arrPrescript);
+        $analyses=$data['analyses']??[];
+        //  dd($analyses);
+        $arrAnalyse = [];
+        foreach ($analyses as $key => $analyse) {
+            if ($analyse) {
+                $arrAnalyse[] = new FegguConsultationAnalyse([
+                    'Analyse'=>$analyse['analyse_id'],
+                    'doctor_id'=>Partner::user()->id,
+                    'note'=>$analyse['note']??null,
+                    'emergency'=>$analyse['emergency'],
+                ]);
+            }
+        }
+        //dd($arrAnalyse);
+        if (!empty($analyses)){
+            $consultation->analyses()->saveMany($arrAnalyse);
+        }
+       if (!empty($prescriptions)){
+           $consultation->prescriptions()->saveMany($arrPrescript);
+       }
 
-        return redirect()->back();
+        return redirect()->route('consultation.edit',['id'=>$data['idC']]);
     }
 
-    public function endConsultation()
-    {
-      $data=  \request('idconsultation');
-      $cons = FegguConsultation::where('slug',$data)->first();
-      if (!$cons){
-          return 'no data';
-      }
-
-      $cons->update(['status'=>1]);
-      return redirect()->back();
-    }
     public function addHospitalisation()
     {
         $data = \request()->all();
 
-        $consultation = FegguConsultation::where('slug',$data['idco'])->first();
+        $consultation = FegguConsultation::find($data['idco']);
         if(!$consultation) {
             return 'no data';
         }
         $dataInsert = [
             'consultation_id'=>$consultation->id,
             'patient_id'=>$consultation->patient_id,
+            'doc_number'=>$consultation->patient->doc_number,
             'hospital_id'=>$consultation->hospital_id,
             'doctor_id'=>Partner::user()->id,
             'slug'=>Str::uuid()->toString(),
@@ -289,7 +284,7 @@ class ConsultationController extends RootPartnerController
         foreach ($analyses as $key => $analyse) {
             if ($analyse) {
                 $arrAnalyse[] = new FegguConsultationAnalyse([
-                    'analyse'=>$analyse['analyse_id'],
+                    'Analyse'=>$analyse['analyse_id'],
                     'doctor_id'=>Partner::user()->id,
                     'note'=>$analyse['note']??null,
                     'emergency'=>$analyse['emergency'],

@@ -437,7 +437,8 @@
 
 .fa-inverse {
   color: #fff;
-  color: var(--fa-inverse, #fff); }
+  color: var(--fa-inverse, #fff);
+}
 
 /* Font Awesome uses the Unicode Private Use Area (PUA) to ensure screen
 readers do not read off random characters that represent icons */
@@ -503,6 +504,8 @@ readers do not read off random characters that represent icons */
 
 .fa-air-conditioner::before {
   content: "\f8f4"; }
+.fa-staff-aesculapius::before {
+  content: "\e579"; }
 
 .fa-airplay::before {
   content: "\e089"; }

@@ -1,6 +1,8 @@
 <template>
-    <Head :title="title ? ` ${site}|${title} ` : 'My App'">
-        <slot />
+    <Head >
+        <title>{{ title ? ` ${site.title} - ${title} ` : 'E-sante'}}</title>
+        <link rel="icon" type="image/svg+xml" :href="favicon" />
+        <meta head-key="description" name="description" content="This is a page specific description" />
     </Head>
 </template>
 
@@ -16,8 +18,10 @@
             title: String,
         },
         setup() {
-            const site = computed(() => usePage().props.value.appName)
-            return { site }
+            const site = computed(() => usePage().props.value.auth.partner)
+            const favicon = computed(() => usePage().props.value.favicon)
+
+            return { site, favicon }
         },
     }
 </script>

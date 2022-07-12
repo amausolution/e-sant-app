@@ -5,6 +5,7 @@ namespace Feggu\Core\Partner\Models;
 
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Multitenancy\Models\Concerns\UsesTenantConnection;
 
 class PartnerUserSpeciality extends Model
 {
@@ -12,6 +13,7 @@ class PartnerUserSpeciality extends Model
     public $incrementing  = false;
     protected $guarded    = [];
     public $timestamps    = false;
-    public $table = AU_DB_PREFIX.'feggu_speciality_doctor';
-    protected $connection = AU_CONNECTION;
+    public $table = AU_DB_PREFIX.'doctor_speciality';
+
+    use UsesTenantConnection;
 }

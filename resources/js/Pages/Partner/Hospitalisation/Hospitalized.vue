@@ -17,7 +17,15 @@
             </div>
         </page-header>
         <div class="card mb-0">
-            <div class="card-body">
+            <div class="card-body relative">
+                <Link :href="route('hospitalized.transfer',{id: hospitalisation.id})"
+                    type="button"
+                    class="inline-flex z-50 items-center px-2 py-2 text-base font-medium text-center rounded
+                           text-rose-100 bg-rose-500 hover:bg-rose-600 hover:text-white absolute top-0 right-0"
+                >
+                    <i class="fa-duotone fa-clipboard-medical"></i>
+                  <span>{{__('Transfer Patient')}}</span>
+                </Link>
                 <div class="row">
                     <div class="col-md-12">
                         <div class="profile-view">
@@ -36,10 +44,18 @@
                                             <h5 class="company-role m-t-0 mb-0">{{__('Blood Group')}}</h5>
                                             <small class="text-muted">{{hospitalisation.patient.blood ? hospitalisation.patient.blood: 'NEAN'}}</small>
                                             <div class="staff-id">{{__('Employee ID')}} : {{hospitalisation.patient.patientID}}</div>
-                                            <div class="staff-msg"><a href="chat.html" class="btn btn-custom">{{__('Info Accompanying')}}</a></div>
+                                            <div class="staff-msg">
+                                                <button @click="modalAccompanying"
+                                                    class="px-6 py-2 text-teal-100 bg-teal-400 rounded hover:bg-teal-500"
+                                                >
+                                                    {{__('Info Accompanying')}}
+                                                </button>
+
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-7">
+                                    <div class="col-md-7 ">
+
                                         <ul class="personal-info">
                                             <li>
                                                 <span class="title">{{__('Phone')}}:</span>
@@ -92,10 +108,15 @@
                             <div class="col-md-4">
                                 <div class="card recent-activity">
                                     <div class="card-body relative">
+                                        <Link :href="route('hospitalisation.consultation',{id: hospitalisation.id})"
+                                            type="button"
+                                            class="inline-flex absolute right-0 top-0 items-center px-6 py-2 text-sm text-center rounded text-cyan-500 bg-cyan-100 hover:bg-cyan-200"
+                                        >
+                                            {{__('Add New')}}
+                                            <i class="fa-solid fa-plus"></i>
+                                        </Link>
                                         <h5 class="text-base font-semibold">{{__('Histories Consultations')}}</h5>
-                                        <button class="bg-green-400 px-2 py-1 flex flex-end
-                                         text-white absolute top-1 right-1 rounded shadow-md hover:bg-slate-700
-                                          hover:shadow-sm">{{__('Add New')}}</button>
+
                                         <ul class="res-activity-list">
                                             <li @click="changeConsultation(consultation)"  v-for="(consultation, index) in hospitalisation.consultation" :key="consultation.id">
                                                 <p class="mb-0">{{consultation.result}}</p>
@@ -109,7 +130,7 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-8 card recent-activity">
+                            <div class="col-md-8 ">
                                <Consultation :consultation="consult"/>
                             </div>
                         </div>
@@ -119,7 +140,7 @@
                     <!-- Analyses Tab -->
                     <div id="analyses" class="tab-pane fade">
                         <div class="row">
-                           analyse
+                            Analyse
                         </div>
                     </div>
                     <!-- /Analyses Tab -->
@@ -272,11 +293,11 @@
                         </div>
                     </div>
                     <!-- /Task Tab -->
-
                 </div>
             </div>
         </div>
     </div>
+    <ModalAccompanying  :modalAccompanying="modalAccompanying" :accompanying="hospitalisation.accompanying" :showModalAc="showModalAc"/>
 </template>
 
 <script>
@@ -287,19 +308,21 @@
     import LoadingButton from "@/Shared/LoadingButton";
     import Consultation from "@/Shared/Consultation";
     import { reactive, computed } from 'vue'
+    import ModalAccompanying from "@/Pages/components/ModalAccompanying";
     export default {
         name: "hospitalized",
-        components: {Consultation, LoadingButton, HeaderTitle, PageHeader, Link},
+        components: {ModalAccompanying, Consultation, LoadingButton, HeaderTitle, PageHeader, Link},
         props: {
             title: String,
-            hospitalisation: Array,
+            hospitalisation: Object,
         },
         mounted(props) {
 
         },
         data() {
             return {
-                consult: this.hospitalisation.consultation[0]
+                consult: this.hospitalisation.consultation[0],
+                showModalAc:false
             }
         },
         setup (props){
@@ -320,6 +343,9 @@
             },
            changeConsultation (data) {
                 this.consult = data
+            },
+            modalAccompanying () {
+                this.showModalAc = !this.showModalAc
             }
         }
     }

@@ -72,6 +72,19 @@ function showAge($date) {
     }
     return $year.$month.$day;
 }
+if (! function_exists('array_flatten')) {
+    /**
+     * Flatten a multi-dimensional array into a single level.
+     *
+     * @param  array  $array
+     * @param  int  $depth
+     * @return array
+     */
+    function array_flatten($array, $depth = INF)
+    {
+        return Arr::flatten($array, $depth);
+    }
+}
 function getDosageText(array $data){
      if (!is_array($data)){
          return null;
@@ -80,7 +93,7 @@ function getDosageText(array $data){
    $arr= array_flatten($data);
      foreach ($arr as $k => $value){
          if (!is_null($value)){
-             $result .= ' ' . __(dosageText()[$value]);
+             $result .= ' ' . __($value);
          }
      }
      return $result;
@@ -95,9 +108,9 @@ function showTime()
 
 function dosageText(){
     return [
-      1=>'Noon' ,
-      2=>'Afternoon',
-      3=>'Evening' ,
+      'noon' ,
+      'morning',
+      'evening' ,
     ];
 }
 function formatting($phone){
@@ -160,21 +173,39 @@ function statusConsultation()
 function gender()
 {
     return [
-      0 =>__('Female'),
+      2 =>__('Female'),
       1 =>__('Male')
     ];
 }
 function genders()
 {
     return [
-          ['id' => 0,'title' =>__('Female')],
+          ['id' => 2,'title' =>__('Female')],
           ['id' =>1 ,'title'=>__('Male')]
+    ];
+}
+function typeChildBirth()
+{
+    return [
+        ['id' =>1 ,'title' => __('cesarean delivery')],
+        ['id' =>2 ,'title' => __('vaginal delivery')],
+        ['id' =>3 ,'title' => __('epidural delivery')],
+        ['id' =>4 ,'title' => __('vaginal delivery with episio')],
+    ];
+}
+function stateBaby()
+{
+    return [
+        ['id' =>1 ,'title' => __('born premature')],
+        ['id' => 2,'title' => __('born healthy')],
+        ['id' =>3 ,'title' => __('born with an anomaly')],
+        ['id' =>4 ,'title' => __('stillborn')],
     ];
 }
 function typeHospitalisation()
 {
     return [
-        0=>__('Monitoring'),
+        2=>__('Monitoring'),
         1=>__('Hospitalisation')
     ];
 }

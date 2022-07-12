@@ -1,4 +1,4 @@
-/*
+
 const mix = require('laravel-mix')
 const webpackNodeExternals = require('webpack-node-externals')
 const webpackConfig = require('./webpack.config')
@@ -12,4 +12,4 @@ mix
     target: 'node',
     externals: [webpackNodeExternals()],
   })
-*/
+

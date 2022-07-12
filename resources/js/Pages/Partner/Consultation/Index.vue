@@ -5,7 +5,7 @@
             <div class="row">
                 <div class="col-sm-12">
                     <h3 class="page-title">
-                        {{partnerUser.username}}
+                        {{user.username}}
                         <span class="text-sm ml-6 font-light">
                              <span>{{ departmentDoctor}} </span>
                         <span>
@@ -46,23 +46,23 @@
                 </tr>
                 <tr v-for="consultation in consultations.data" :key="consultation.id" class="hover:bg-gray-100 focus-within:bg-gray-100">
                     <td class="border-t">
-                       <Link class="flex items-center px-6 py-2 focus:text-indigo-500" :href="route('consultation.edit',{slug: consultation.slug})">
+                       <Link class="flex items-center px-6 py-2 focus:text-indigo-500" :href="route('consultation.edit',{id: consultation.id})">
                             <img v-if="consultation.patient.avatar" class="block -my-2 mr-2 w-5 h-5 rounded-full" :src="consultation.patient.getAvatar()"  alt=""/>
                             {{ consultation.patient.name }}
                         </Link>
                     </td>
                     <td class="border-t">
-                        <Link class="flex items-center px-6 py-2" tabindex="-1" :href="route('consultation.edit',{slug: consultation.slug})">
+                        <Link class="flex items-center px-6 py-2" tabindex="-1" :href="route('consultation.edit',{id: consultation.id})">
                             {{ consultation.patient.doc_number }}
                         </Link>
                     </td>
                     <td class="border-t">
-                        <Link class="flex items-center px-6 py-2" :href="route('consultation.edit',{slug: consultation.slug})" tabindex="-1">
+                        <Link class="flex items-center px-6 py-2" :href="route('consultation.edit',{id: consultation.id})" tabindex="-1">
                             {{ consultation.ticket }}
                         </Link>
                     </td>
                     <td class="w-px border-t">
-                        <Link class="flex items-center px-2" :href="route('consultation.edit',{slug: consultation.slug})" tabindex="-1">
+                        <Link class="flex items-center px-2" :href="route('consultation.edit',{id: consultation.id})" tabindex="-1">
                             <icon name="cheveron-right" class="block w-6 h-6 fill-gray-400" />
                         </Link>
                     </td>
@@ -79,13 +79,14 @@
 <script>
     import HeaderTitle from "../../../Shared/HeaderTitle";
     import PageHeader from "../../../Shared/PageHeader";
-    import { Head, Link } from '@inertiajs/inertia-vue3'
+    import {Head, Link, usePage} from '@inertiajs/inertia-vue3'
     import Icon from '@/Shared/Icon'
     import pickBy from 'lodash/pickBy'
     import throttle from 'lodash/throttle'
     import mapValues from 'lodash/mapValues'
     import Pagination from '@/Shared/Pagination'
     import SearchFilter from '@/Shared/SearchFilter'
+    import {computed} from "vue";
     export default {
         name: "Index",
         components: {
@@ -99,11 +100,15 @@
         // layout: Layout,
         props: {
             filters: Object,
-            partnerUser: Object,
+
             consultations: Array,
             title: String,
             departmentDoctor: String,
             room: String
+        },
+        setup(){
+            const user = computed(() => usePage().props.value.auth.user)
+            return {user}
         },
         data() {
             return {

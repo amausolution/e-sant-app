@@ -5,6 +5,9 @@ namespace App\Partner\Controllers;
 
 use App\Http\Controllers\RootPartnerController;
 
+use App\Partner\Models\Pharmacy;
+use Carbon\Carbon;
+use Feggu\Core\Partner\Models\CategoryAnalysisDetail;
 use Feggu\Core\Partner\Models\FegguConsultation;
 use Feggu\Core\Partner\Models\FegguConsultationAnalyse;
 use Feggu\Core\Partner\Models\FegguConsultationPrescription;
@@ -22,6 +25,7 @@ use Illuminate\Http\Response;
 
 use Illuminate\Support\Facades\Request;
 
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Validator;
 
@@ -41,13 +45,13 @@ class HospitalisationController extends RootPartnerController
 
         return Inertia::render('Partner/Hospitalisation/Index',[
             'title'=>__('List Ask Hospitalisation'),
-            'hospitalisations'=> FegguHospitalisation::where('status',0)->where('hospital_id',session('partnerId'))->with('patient')
-                ->orderByName()
-                ->filter(Request::only('search','patientID','gender','phone','cin'))
+            'hospitalisations'=> FegguHospitalisation::where('status',0)->where('hospital_id',session('partnerId'))
+                ->filter(Request::only('first_name','identifier','last_name'))
                 ->paginate(20)
                 ->withQueryString()
                 ->through(fn ($hp) => [
                     'id' => $hp->slug,
+                    'phone' => $hp->patient->mobil,
                     'name' => $hp->patient->name,
                     'phone_urgency' => $hp->patient->phone_urgency,
                     'patientId'=>$hp->patient->doc_number,
@@ -55,7 +59,7 @@ class HospitalisationController extends RootPartnerController
                     'gender'=> gender()[$hp->patient->gender],
                     'avatar'=> asset($hp->patient->getAvatar()),
                 ]),
-            'filters' => \request()->all('search','patientID','gender','phone','cin'),
+            'filters' => \request()->all('first_name','identifier','last_name'),
         ]);
     }
 
@@ -75,19 +79,21 @@ class HospitalisationController extends RootPartnerController
             'title'=>__('List Ask Hospitalisation'),
             'hospitalisations'=> FegguHospitalisation::where('status',1)->where('hospital_id',session('partnerId'))->with('patient')
                 ->orderByName()
-                ->filter(Request::only('search','patientID','gender','phone','cin'))
+                ->filter(Request::only('first_name','identifier','last_name','accompanying'))
                 ->paginate(20)
                 ->withQueryString()
                 ->through(fn ($hp) => [
-                    'id' => $hp->slug,
+                    'id' => $hp->id,
                     'name' => $hp->patient->name,
+                    'phone' => $hp->patient->mobil,
+                    'accompanying' => $hp->accompanying,
                     'phone_urgency' => $hp->patient->phone_urgency,
                     'patientId'=>$hp->patient->doc_number,
                     'doctor'=>$hp->doctor->name,
                     'gender'=> gender()[$hp->patient->gender],
                     'avatar'=> asset($hp->patient->getAvatar()),
                 ]),
-            'filters' => \request()->all('search','patientID','gender','phone','cin'),
+            'filters' => \request()->all('first_name','identifier','last_name','accompanying'),
         ]);
     }
 
@@ -127,10 +133,10 @@ class HospitalisationController extends RootPartnerController
         ]);
     }
 
-    public function editHospitalize($slug)
+    public function editHospitalize($id)
     {
         //dd($slug);
-        $hospitalisation = FegguHospitalisation::where('slug',$slug)->where('status',1)->firstOrFail();
+        $hospitalisation = FegguHospitalisation::where('id',$id)->where('status',1)->firstOrFail();
         if (!$hospitalisation){
             return 'no data';
         }
@@ -143,17 +149,20 @@ class HospitalisationController extends RootPartnerController
                 'bed'=>$hospitalisation->bed,
                 'doctor'=>$hospitalisation->doctor->name,
                 'indemnification'=>$hospitalisation->indemnification,
-                'accompanying'=>$hospitalisation->accompanying,
-                'accompanying_phone'=>$hospitalisation->accompanying_phone,
-                'piece_guarantor'=>$hospitalisation->piece_guarantor,
                 'hospitalized_by'=>$hospitalisation->hospitalized->name,
                 'date_in'=>$hospitalisation->date_in,
+                'accompanying'=> [
+                    'accompanying'=>$hospitalisation->accompanying,
+                    'accompanying_phone'=>$hospitalisation->accompanying_phone,
+                    'piece_guarantor'=>$hospitalisation->piece_guarantor,
+                    'type_piece'=>typePiece()[$hospitalisation->type_piece],
+                ],
                 'consultation'=> $hospitalisation->consultations()->get()->map(function ($consultation){
                     return [
                         'doctor'=>$consultation->doctor->name,
                         'id'=>$consultation->id,
                         'date'=>showDateTime($consultation->created_at),
-                        'diagnostic'=>$consultation->diagnostic,
+                        'diagnostic'=>au_html_render($consultation->diagnostic),
                         'first_diag'=>$consultation->first_diag??[],
 
                         'prescriptions'=> $consultation->prescriptions()->get()->map(function ($prescription){
@@ -164,10 +173,18 @@ class HospitalisationController extends RootPartnerController
                                'quantity'=>$prescription->quantity,
                                'dosage'=>$prescription->dosage,
                                'duration'=>$prescription->duration,
-
                              ];
-                         })
-                    ];
+                         }),
+                        'analyses'=> $consultation->analyses()->get()->map(function ($analyse) {
+                            return [
+                                'title'=> json_decode($analyse->analyse,true)['title'],
+                                'id'=> json_decode($analyse->analyse,true)['id'],
+                                'emergency'=> $analyse->emergency,
+                                'note'=>$analyse->note,
+                                'status'=>$analyse->status,
+                            ];
+                        })
+                            ];
                 }),
                 'patient'=>[
                     'blood'=>$hospitalisation->patient->blood_group,
@@ -185,6 +202,119 @@ class HospitalisationController extends RootPartnerController
             //'rooms'=>HospitalRoom::with('beds')->get(),
             'type_piece'=>typePiece()
         ]);
+    }
+
+    public function transfer($id)
+    {
+        $hospitalisation = FegguHospitalisation::find($id);
+
+        if (!$hospitalisation){
+            return 'no data';
+        }
+
+        return Inertia::render('Partner/Hospitalisation/Transfer',[
+            'title'=> __('Transfer Patient'),
+            'hospitalisation' => [
+                'id'=>$hospitalisation->id,
+            ]
+        ]);
+    }
+
+    public function consultation($id)
+    {
+        $hospitalisation = FegguHospitalisation::find($id);
+
+        if (!$hospitalisation){
+            return 'no data';
+        }
+        return Inertia::render('Partner/Hospitalisation/Consultation',[
+            'title'=> __('New Consultation'),
+            'category_analyses'=>CategoryAnalysisDetail::where('status',1)->get()->map->only('id','title'),
+            'hospitalisation' => [
+                'id'=>$hospitalisation->id,
+                'patient'=>$hospitalisation->patient->doc_number,
+
+            ]
+        ]);
+    }
+
+    public function postConsultation($id)
+    {
+        $data = Request::all();
+        $hospitalisation = FegguHospitalisation::find($id);
+
+        if (!$hospitalisation){
+            return 'no data';
+        }
+      //  dd($data);
+
+        Request::validate([
+            'diagnostic'=>'required',
+            ],[]);
+
+
+        $firstDiag = [];
+       if (isset($data['tension'])){
+           $firstDiag['tension']= $data['tension'];
+       }
+        if (isset($data['temperature'])){
+            $firstDiag['temperature']= $data['temperature'];
+        }
+        if (isset($data['sugar'])){
+            $firstDiag['sugar']= $data['sugar'];
+        }
+        $dataConsultation = [
+            'diagnostic'=>$data['diagnostic'],
+            'result'=>$data['result'],
+           // 'first_diag'=>$firstDiag,
+            'hospital_id'=>session('partnerId'),
+            'patient_id'=>$hospitalisation->patient_id,
+            'doc_number'=>$hospitalisation->patient->doc_number,
+            'slug'=>Str::uuid()->toString(),
+            'ip_doctor'=>\request()->ip(),
+            'doctor_user_agent'=>\request()->server('HTTP_USER_AGENT'),
+            'view_at'=>Carbon::now()->tz('Africa/Dakar')->format('H:i:m'),
+            'status'=>2,
+            'age'=> showAge($hospitalisation->patient->birthday),
+            'doctor_id'=>\Partner::user()->id,
+        ];
+
+       // $dataConsultation = au_clean($dataConsultation,[], true);
+        $dataConsultation['first_diag']=$firstDiag;
+        $consultation = FegguConsultation::create($dataConsultation);
+        $prescriptions= $data['prescriptions']??[];
+        $arrPrescript = [];
+        foreach ($prescriptions as $key => $prescript) {
+            if ($prescript) {
+                $arrPrescript[] = new FegguConsultationPrescription([
+                    'doctor_id'=> \Partner::user()->id,
+                    'label' => $prescript['label'],
+                    'quantity' => $prescript['quantity'],
+                    'dosage' => $prescript['dosage'],
+                    'dosage_text' => $prescript['dosageText'],
+                    'duration' => $prescript['duration'],
+                ]);
+            }
+        }
+        $analyses=$data['analyses']??[];
+        //  dd($analyses);
+        $arrAnalyse = [];
+        foreach ($analyses as $key => $analyse) {
+            if ($analyse) {
+                $arrAnalyse[] = new FegguConsultationAnalyse([
+                    'Analyse'=>$analyse['analyse_id'],
+                    'doctor_id'=>Partner::user()->id,
+                    'note'=>$analyse['note']??null,
+                    'emergency'=>$analyse['emergency'],
+                ]);
+            }
+        }
+        //dd($arrAnalyse);
+        $consultation->analyses()->saveMany($arrAnalyse);
+        //dd($dataConsultation,$arrPrescript);
+        $consultation->prescriptions()->saveMany($arrPrescript);
+        $hospitalisation->consultations()->attach($consultation);
+        return redirect()->route('hospitalisation.hospitalized.edit',['id' =>$id]);
     }
 
     /**
@@ -262,18 +392,61 @@ class HospitalisationController extends RootPartnerController
           //  'analyses'=> CategoryAnalysis::with('specifications')
         ]);
     }
-    public function endHospitalized($slug)
+    public function endHospitalized($id)
     {
-        $hospitalisation = FegguHospitalisation::where('slug',$slug)->firstOrFail();
+
+        $hospitalisation = FegguHospitalisation::find($id);
         if (!$hospitalisation){
             return 'no data';
         }
 
-        return view($this->templatePathPartner.'hospitalisation.discharge_patient',[
+        return Inertia::render('Partner/Hospitalisation/End',[
             'title'=>__('Discharge Patient'),
-            'subTitle' => '',
-            'icon' => 'fa fa-indent',
-            'hospitalisation'=>$hospitalisation,
+
+            'hospitalisation'=> [
+                'date'=>$hospitalisation->date_in,
+                'price'=>$hospitalisation->price,
+                'bed'=>$hospitalisation->bed,
+                'room'=>$hospitalisation->room,
+                'hospitalisation'=>$hospitalisation->id,
+                'indemnification'=>$hospitalisation->indemnification,
+                'insurer'=>[
+                    'name'=>$hospitalisation->patient->insurer->insurer_name
+                ],
+                'accompanying'=>[
+                    'phone'=>$hospitalisation->accompanying_phone,
+                    'name'=>$hospitalisation->accompanying,
+                    'piece'=>$hospitalisation->piece_guarantor
+                ],
+                'consultations'=>$hospitalisation->consultations()->get()->map(function ($consultation){
+                    return [
+                      'created_at'=>$consultation->created_at,
+                      'identifier'  => $consultation->identifier,
+                      'prescriptions'=>$consultation->prescriptions,
+                       'analyses'=>$consultation->analyses()->where('status',1)->get()->map(function ($analyse){
+                            return [
+                                'price'=>$analyse->price,
+                                'result'=>$analyse->results()->where('labo_id',getPartner()->laboratory->id)->get()->map(function ($res){
+                                    return [
+                                        $res
+                                    ];
+                                })
+                            ];
+                        }),
+                      'prescriptions_detail'=>$consultation->prescriptions()->where('status',1)->where('pharmacy_id',getPartner()->pharmacy->id)->get()->map(function ($prescription){
+                          return [
+                              'status'=>$prescription->status,
+                              'label'=>$prescription->label,
+                              'quantity'=>$prescription->quantity,
+                              'price'=>$prescription->price,
+                              'status_payment'=>$prescription->status_payment,
+                              'type_payment'=>$prescription->type_payment,
+                              'detail'=>$prescription->detail()->get()->map->only(''),
+                          ];
+                      }),
+                    ];
+                })
+            ],
         ]);
     }
 
@@ -283,12 +456,12 @@ class HospitalisationController extends RootPartnerController
         $reload = false;
         $message='';
         $data = request()->all();
-      //  dd($data['analyse']);
+      //  dd($data['Analyse']);
         $validation_rule=[
             'diagnostic'=>'required',
             'idH'=>'required',
             'prescription'         => 'sometimes|required|array',
-            'analyse.*'         => 'sometimes|required',
+            'Analyse.*'         => 'sometimes|required',
             'prescription.label.*'  => 'required_with:prescription',
             'prescription.quantity.*' => 'required_with:prescription|min:1',
             'prescription.dosage.*' => 'nullable|string|max:50',
@@ -342,9 +515,9 @@ class HospitalisationController extends RootPartnerController
         }
         $consultation->prescriptions()->saveMany($dataInsert);
 
-        //Insert analyse
-        if (isset($data['analyse']) && $data['analyse']){
-            foreach ($data['analyse']as $code => $value) {
+        //Insert Analyse
+        if (isset($data['Analyse']) && $data['Analyse']){
+            foreach ($data['Analyse']as $code => $value) {
                 $analyse = new FegguConsultationAnalyse();
                 $analyse->consultation_id      = $consultation->id;
                 $analyse->doctor_id            = Partner::user()->id;

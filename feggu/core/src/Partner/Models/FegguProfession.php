@@ -6,10 +6,11 @@ namespace Feggu\Core\Partner\Models;
 
 use Feggu\Core\Partner\Models\ModelTrait;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Multitenancy\Models\Concerns\UsesTenantConnection;
 
 class FegguProfession extends Model
 {
-    use ModelTrait;
+    use ModelTrait,UsesTenantConnection;
 
     public $timestamps     = false;
     public $table          = AU_DB_PREFIX.'feggu_profession';

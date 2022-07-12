@@ -76,18 +76,29 @@ class FegguHospitalisation extends Model
     }
     public function scopeFilter($query, array $filters)
     {
-        $query->when($filters['search'] ?? null, function ($query, $search) {
-            $query->where(function ($query) use ($search) {
-                $query->where('first_name', 'like', '%'.$search.'%')
-                    ->orWhere('last_name', 'like', '%'.$search.'%');
+        $query->when($filters['first_name'] ?? null, function ($query, $first_name) {
+            $query->where(function ($query) use ($first_name) {
+                $query->whereHas('patient', function ($query) use ($first_name) {
+                    $query->where('first_name', 'like', '%'.$first_name.'%');
+                });
             });
-        })->when($filters['patientId'] ?? null, function ($query, $identifier) {
+        })->when($filters['last_name'] ?? null, function ($query, $last_name) {
+            $query->where(function ($query) use ($last_name) {
+                $query->whereHas('patient', function ($query) use ($last_name) {
+                    $query->where('last_name', 'like', '%'.$last_name.'%');
+                });
+            });
+        })->when($filters['accompanying'] ?? null, function ($query, $accompanying) {
+            $query->where(function ($query) use ($accompanying) {
+                $query->where('accompanying', 'like', '%'.$accompanying.'%');
+            });
+        })->when($filters['identifier'] ?? null, function ($query, $identifier) {
             $query->where(function ($query) use ($identifier) {
-                $query->where('doc_number', '=', $identifier);
-            });
-        })->when($filters['gender'] ?? null, function ($query, $gender) {
-            $query->where(function ($query) use ($gender) {
-                $query->where('gender', '=', $gender);
+                $query->whereHas('patient', function ($query) use ($identifier) {
+                    $query->where('doc_number', '=', $identifier)
+                    ->orWhere('mobil', '=', $identifier)
+                    ->orWhere('number_piece', '=', $identifier);
+                });
             });
         });
     }

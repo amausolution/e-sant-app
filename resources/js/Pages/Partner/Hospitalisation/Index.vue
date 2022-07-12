@@ -16,10 +16,31 @@
                 </div>
             </div>
         </page-header>
+        <!-- Search Filter -->
+        <div class="row filter-row">
+        <div class="col-sm-6 col-md-3">
+            <div class="form-group form-focus">
+                <input type="text" class="form-control floating" v-model="form.identifier">
+                <label class="focus-label">{{__('Doc Number, Phone, Piece...')}}</label>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+            <div class="form-group form-focus">
+                <input type="text" class="form-control floating" v-model="form.first_name">
+                <label class="focus-label">{{__('Patient First Name')}}</label>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+            <div class="form-group form-focus">
+                <input type="text" class="form-control floating" v-model="form.last_name">
+                <label class="focus-label">{{__('Patient Last Name')}}</label>
+            </div>
+        </div>
+        </div>
         <div class="bg-white rounded-md shadow overflow-x-auto">
             <table class="w-full whitespace-nowrap text-base">
                 <tr class="text-left font-bold">
-                    <th class="pb-2 pt-3 px-6">{{__('Avatar')}}</th>
+
                     <th class="pb-2 pt-3 px-6">{{__('Name')}}</th>
                     <th class="pb-2 pt-3 px-6">{{__('Patient Id')}}</th>
                     <th class="pb-2 pt-3 px-6">{{__('Phone urgency')}}</th>
@@ -27,39 +48,40 @@
                     <th class="pb-2 pt-3 px-6">{{__('Gender')}}</th>
                     <th class="pb-2 pt-3 px-6">{{__('Status')}}</th>
                 </tr>
-                <tr v-for="hospitalisation in hospitalisations.data" :key="hospitalisation.id" class="hover:bg-gray-100 focus-within:bg-gray-100">
+                <tr v-for="hospitalisation in hospitalisations.data" :key="hospitalisation.id" class="hover:bg-gray-100 focus-within:bg-gray-100 text-sm">
                     <td class="border-t w-px">
-                        <Link class="flex items-center px-6 py-2 w-20" tabindex="-1" :href="route('hospitalisation.edit',{id: hospitalisation.id})">
-                            <img class="w-20 object-fill" :src="hospitalisation.avatar" :alt="hospitalisation.name" />
+                        <Link class="flex items-center px-6 py-2 text-black" tabindex="-1" :href="route('hospitalisation.hospitalized.edit',{id: hospitalisation.id})">
+                            <span class="avatar">
+                                <img class="" :src="hospitalisation.avatar" :alt="hospitalisation.name" />
+                            </span>
+                            <span class="flex flex-col">
+                              <span>{{ hospitalisation.name}}</span>
+                              <span>{{ hospitalisation.phone}}</span>
+                           </span>
                         </Link>
                     </td>
                     <td class="border-t">
-                        <Link class="flex items-center px-6 py-2" tabindex="-1" :href="route('hospitalisation.edit',{id: hospitalisation.id})">
-                            {{ hospitalisation.name }}
-                        </Link>
-                    </td>
-                    <td class="border-t">
-                        <Link class="flex items-center px-6 py-2" tabindex="-1" :href="route('hospitalisation.edit',{id: hospitalisation.id})">
+                        <Link class="flex items-center px-6 py-2 text-black" tabindex="-1" :href="route('hospitalisation.edit',{id: hospitalisation.id})">
                             {{ hospitalisation.patientId }}
                         </Link>
                     </td>
                     <td class="border-t">
-                        <Link class="flex items-center px-6 py-2" tabindex="-1" :href="route('hospitalisation.edit',{id: hospitalisation.id})">
+                        <Link class="flex items-center px-6 py-2 text-black" tabindex="-1" :href="route('hospitalisation.edit',{id: hospitalisation.id})">
                             {{ hospitalisation.phone_urgency }}
                         </Link>
                     </td>
                     <td class="border-t">
-                        <Link class="flex items-center px-6 py-2" tabindex="-1" :href="route('hospitalisation.edit',{id: hospitalisation.id})">
+                        <Link class="flex items-center px-6 py-2 text-black" tabindex="-1" :href="route('hospitalisation.edit',{id: hospitalisation.id})">
                             {{ hospitalisation.doctor}}
                         </Link>
                     </td>
                     <td class="border-t">
-                        <Link class="flex items-center px-6 py-2" tabindex="-1" :href="route('hospitalisation.edit',{id: hospitalisation.id})">
+                        <Link class="flex items-center px-6 py-2 text-black" tabindex="-1" :href="route('hospitalisation.edit',{id: hospitalisation.id})">
                             {{ hospitalisation.gender}}
                         </Link>
                     </td>
                     <td class="border-t">
-                        <Link class="flex items-center px-6 py-2" tabindex="-1" :href="route('hospitalisation.edit',{id: hospitalisation.id})">
+                        <Link class="flex items-center px-6 py-2 text-black" tabindex="-1" :href="route('hospitalisation.edit',{id: hospitalisation.id})">
                             <span class="badge bg-inverse-success">{{__('New')}}</span>
                         </Link>
                     </td>
@@ -91,13 +113,41 @@
     import PageHeader from "@/Shared/PageHeader";
     import Pagination from "@/Shared/Pagination";
     import {Link} from "@inertiajs/inertia-vue3"
+    import throttle from "lodash/throttle";
+    import pickBy from "lodash/pickBy";
+    import mapValues from "lodash/mapValues";
     export default {
         name: "index",
         components: {Pagination, PageHeader, HeaderTitle, Link},
         props: {
             hospitalisations:Object,
-            title:String
-        }
+            title:String,
+            filters: Object,
+        },
+        data() {
+            return {
+                form: {
+                    first_name: this.filters.first_name,
+                    identifier: this.filters.identifier,//doc_number phone cin ....
+                    last_name: this.filters.last_name,
+                    // trashed: this.filters.gender,
+                },
+            }
+        },
+        watch: {
+            form: {
+                deep: true,
+                handler: throttle(function () {
+                    this.$inertia.get(route('hospitalisation.index'), pickBy(this.form), { preserveState: true })
+                }, 150),
+            },
+        },
+        methods: {
+            reset() {
+                this.form = mapValues(this.form, () => null)
+            },
+
+        },
     }
 </script>
 

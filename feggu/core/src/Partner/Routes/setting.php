@@ -1,12 +1,12 @@
 <?php
-        Route::group(['prefix' => 'info_settings'], function () {
-        Route::get('/', 'SettingController@index')->name('setting.index');
-        Route::post('/partner/{code}', 'SettingController@update')->name('setting.update');
-        Route::post('/post_patient', 'SettingController@postSetting')->name('setting.consultation');
-        Route::get('/show/{code}', 'SettingController@show')->name('setting.show');
-        Route::post('/update', 'SettingController@update')->name('partner_config.update');
-        Route::get('/update_global', 'SettingController@updateGlobal')->name('partner_config_global.update');
-        });
+/*Route::group(['prefix' => 'info_settings'], function () {
+Route::get('/', 'SettingController@index')->name('setting.index');
+Route::post('/partner/{code}', 'SettingController@update')->name('setting.update');
+Route::post('/post_patient', 'SettingController@postSetting')->name('setting.consultation');
+Route::get('/show/{code}', 'SettingController@show')->name('setting.show');
+Route::post('/update', 'SettingController@update')->name('partner_config.update');
+Route::get('/update_global', 'SettingController@updateGlobal')->name('partner_config_global.update');
+});
 Route::group(['prefix' => 'company'], function () {
     Route::get('/', 'CompanySettingController@company')->name('company.index');
     Route::post('/update', 'CompanySettingController@updateCompany')->name('company.update');
@@ -38,4 +38,4 @@ Route::group(['prefix' => 'role_permission'], function () {
 Route::group(['prefix' => 'theme'], function () {
     Route::get('/', 'CompanySettingController@theme')->name('theme.index');
     Route::post('/update', 'CompanySettingController@updateTheme')->name('theme.update');
-});
+});*/

@@ -49,9 +49,8 @@ class PartnerConfig extends Model
         if ($onlyActive) {
             $query = $query->where('value', 1);
         }
-        $data = $query->orderBy('sort', 'asc')
+        return $query->orderBy('sort', 'asc')
             ->get()->keyBy('key');
-        return $data;
     }
 
 
@@ -73,9 +72,9 @@ class PartnerConfig extends Model
         $return = $return->orderBy('sort', 'desc')->pluck('value')->all();
         if ($return) {
             return $return;
-        } else {
-            return [];
         }
+
+        return [];
     }
 
     /**
@@ -126,9 +125,9 @@ class PartnerConfig extends Model
         $data =  self::$getAllConfigOfPartner[$partnerId] ?? collect();
         if ($data) {
             return $data->pluck('value', 'key')->all();
-        } else {
-            return [];
         }
+
+        return [];
     }
 
     /**

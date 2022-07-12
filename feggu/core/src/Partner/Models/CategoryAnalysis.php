@@ -12,7 +12,7 @@ class CategoryAnalysis extends Model
 
     public $table = AU_DB_PREFIX . 'category_analysis';
     protected $guarded = [];
-    protected $connection = 'consultation';
+    protected $connection = 'laboratory';
 
     protected static $getListTitleAdmin = null;
     protected static $getListCategoryGroupByAdmin = null;

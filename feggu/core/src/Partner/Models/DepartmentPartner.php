@@ -22,6 +22,10 @@ class DepartmentPartner extends Model
     {
         return $this->belongsToMany(PartnerUser::class,DepartmentDoctor::class,'department_partner_id','doctor_id');
     }
+    public function partner()
+    {
+        return $this->belongsToMany(FegguPartner::class,DepartmentDoctor::class,'department_partner_id','partner_id');
+    }
 
 
 

@@ -2,10 +2,8 @@
     <HeaderTitle :title="`${ title }`" />
     <!-- Chat Main Row -->
     <div class="chat-main-row">
-
         <!-- Chat Main Wrapper -->
         <div class="chat-main-wrapper">
-
             <!-- Chats View -->
             <div class="col-lg-9 message-view task-view">
                 <div class="chat-window">
@@ -45,6 +43,7 @@
                                         <a href="javascript:void(0)" class="dropdown-item">{{__('Transfer')}}</a>
                                     </div>
                                 </li>
+                                <detail-patient :patient="{ consultation }"/>
                             </ul>
                         </div>
                     </div>
@@ -53,47 +52,181 @@
                             <div class="chat-wrap-inner">
                                 <div class="chat-box">
                                     <div class="chats">
-                                        <div class="flex flex-col md:flex-row justify-center space-y-2 md:space-x-3 ">
-                                            <button class="px-6 py-2 shadow-md rounded text-white bg-slate-500 text-lg
-                                             font-semibold hover:bg-slate-700 justify-center flex flex-row items-center justify-between"
-                                                    v-on:click="toggleModalConsultation" v-if="consultation.status!==1">
-                                                <span>{{ __('Start The Consultation')}}</span>
-                                                <i class="fa-solid fa-stethoscope"></i>
-                                            </button>
-                                            <button class="px-6 py-2 shadow-md rounded text-white bg-orange-500 text-base
-                                             font-semibold hover:bg-orange-700 justify-center flex flex-row items-center justify-between space-x-2"
-                                                    v-on:click="toggleModalAnalyse" v-if="consultation.diagnostic.length !==0">
-                                                <i class="fa-solid fa-vial"></i>
-                                                <span>{{ __('Prescribe Analyse')}}</span>
-                                            </button>
-                                            <form v-on:submit.prevent="hospitalized"  v-if="consultation.diagnostic.length !==0 && consultation.hospitalisation.length === 0">
-                                                <button class="px-6 py-2 shadow-md rounded text-white bg-rose-500 text-base space-x-2
-                                                 font-semibold hover:bg-rose-700 justify-center flex flex-row items-center justify-between"
-                                                       >
-                                                    <i class="fa-solid fa-bed-pulse"></i>
-                                                    <span>{{ __('Hospitalized This Patient')}}</span>
-                                                </button>
-                                            </form>
-                                            <div v-else>
-                                                <span class="px-6 py-2 shadow-md rounded text-white bg-rose-500 text-base space-x-2
-                                                 font-semibold hover:bg-rose-700 justify-center flex flex-row items-center" v-if="consultation.hospitalisation.status===0">
-                                                    <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 50 50" fill="currentColor">
-                                                      <path d="M3 9C1.3545455 9 0 10.354545 0 12L0 42L6 42L6 37L44 37L44 42L50 42L50 29L50 28L50 27C50 24.254545 47.745455 22 45 22L21 22 A 1.0001 1.0001 0 0 0 20 23L20 28L19.990234 28 A 1.0001 1.0001 0 0 0 19.962891 27.859375C19.962891 27.859375 18.686818 22.784509 14.527344 20.820312C13.489567 20.330251 12.413269 20.096215 11.382812 20.021484C8.9348293 19.843953 6.8055853 20.542355 6 20.849609L6 12C6 10.354545 4.6454545 9 3 9 z M 3 11C3.5545455 11 4 11.445455 4 12L4 30L5 30L13.96875 30C14.378184 30.021114 14.777885 30.021522 15.164062 30L21 30L48 30L48 40L46 40L46 35L4 35L4 40L2 40L2 12C2 11.445455 2.4454545 11 3 11 z M 11.248047 22.056641C12.073841 22.103781 12.911605 22.268967 13.673828 22.628906C16.108224 23.778482 17.186298 26.305558 17.621094 27.457031C16.950797 27.670474 15.789901 27.987024 14.466797 28L14.037109 28C13.16748 27.961536 12.243376 27.777938 11.347656 27.330078 A 1.0001 1.0001 0 0 0 11.326172 27.320312C8.8947024 26.172155 7.8245508 23.727704 7.3847656 22.587891C8.1959031 22.328179 9.4291133 21.952797 11.248047 22.056641 z M 22 24L45 24C46.654545 24 48 25.345455 48 27L48 28L22 28L22 24 z M 6 24.53125C6.5802025 25.64641 7.4487205 26.945229 8.7265625 28L6 28L6 24.53125 z" fill="currentColor" />
-                                                    </svg>
-                                                   <span>
-                                                       {{ __('Patient Hospitalization Asked ')}}
-                                                   </span>
+                                        <div class=" ">
+                                            <div class="col-sm" v-if="consultation.status !== 2">
+                                                <form class="needs-validation" novalidate="" @submit.prevent="handleConsultation">
+                                                    <div class="form-row ">
+                                                        <div class="col-12 row">
+                                                            <div class="col-4 mb-3">
+                                                                <label for="sugar">{{__('Sugar')}}</label>
+                                                                <input v-model="form.sugar" type="text" class="form-control" id="sugar">
+                                                                <div class="valid-feedback" v-if="form.errors.sugar"> {{form.errors.sugar}}</div>
+                                                            </div>
+                                                            <div class="col-4 mb-3">
+                                                                <label for="tension">{{__('Tension')}}</label>
+                                                                <input v-model="form.tension" type="text" class="form-control" id="tension">
+                                                                <div class="valid-feedback" v-if="form.errors.tension">{{form.errors.tension}} </div>
+                                                            </div>
+                                                            <div class="col-4 mb-3">
+                                                                <label for="temperature">{{__('Temperature')}}</label>
+                                                                <input v-model="form.temperature" type="text" class="form-control" id="temperature">
+                                                                <div class="invalid-feedback" v-if="form.errors.temperature">{{form.errors.temperature}} </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <div class="form-group">
+                                                                <label for="">{{__('Diagnostic')}}</label>
+                                                                <ckeditor :editor="editor" v-model="form.diagnostic" :config="editorConfig"></ckeditor>
+                                                                <span class="help-block text-sm" v-if="form.errors.diagnostic">{{form.errors.diagnostic}}</span>
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label for="result">{{ __('Result')}}</label>
+                                                                <textarea class="form-control" name="result" id="result" cols="30" rows="4" v-model="form.result"></textarea>
+                                                                <span class="help-block text-sm" v-if="form.errors.result">{{form.errors.result}}</span>
+                                                            </div>
+                                                            <div class="flex flex-col space-y-3 mb-4 bg-white rounded-md shadow-sm p-3 relative" v-for="(analyse,a) in form.analyses" :key="a">
+                                                                <i class="fas fa-minus-circle fa-2x text-danger absolute right-2 top-0" @click="removeAnalyse(a)" v-show="a || ( !k && form.analyses.length > 1)"></i>
+                                                                <label class="typo__label">{{__('Category Analysis')}}</label>
+                                                                <vue-multiselect v-model="analyse.analyse_id" :select-label="__('type enter to select')" :options="category_analyses"  v-bind:placeholder="__('Select one')" label="title" track-by="id" tag-placeholder="Add this as new tag">
+                                                                    <template>
+                                                                        <span slot="noResult">{{__('Consider changing the search query.')}}</span>
+                                                                    </template>
+                                                                </vue-multiselect>
+                                                                <div>
+                                                                    <label for="note">{{__('Note')}}</label>
+                                                                    <textarea class="form-control" v-model="analyse.note" cols="6" id="note"></textarea>
+                                                                </div>
+                                                                <div class="flex flex-row space-x-4 justify-start items-baseline">
+                                                                    <span>{{__('Emergency:')}}</span>
+                                                                    <label for="yes" class="flex flex-row space-x-2">
+                                                                        <span>{{__('Yes')}}</span>
+                                                                        <input type="radio" v-model="analyse.emergency" id="yes" value="1" class="w-5 h-5">
+                                                                    </label>
+                                                                    <label for="no" class="flex flex-row space-x-2">
+                                                                        <span>{{ __('No')}}</span>
+                                                                        <input type="radio" v-model="analyse.emergency" id="no" value="0" class="w-5 h-5">
+                                                                    </label>
+                                                                </div>
+                                                                <span class="flex flex-row space-x-3 justify-end">
+<!--                                                                        <i class="fas fa-minus-circle fa-2x text-danger" @click="removeAnalyse(a)" v-show="a || ( !k && form.analyses.length > 1)"></i>-->
+                                                                        <i class="fas fa-plus-circle fa-2x text-success" @click="addAnalyse(a)" v-show="a === form.analyses.length-1"></i>
+                                                                </span>
+                                                            </div>
+                                                            <div class="form-row border p-2 mb-1 bg-white shadow-sm rounded-md" v-for="(prescription,k) in form.prescriptions" :key="k" >
+                                                                <div class="col-md-1 mb-3 ">
+                                                                    <label for="quantity">{{__('Quantity')}}</label>
+                                                                    <input type="text" class="form-control" id="quantity" v-model="prescription.quantity" required="">
+                                                                    <div class="help-block text-xs" v-if="form.errors.quantity">
+                                                                        {{form.errors.quantity}}
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-5 mb-3">
+                                                                    <label for="label">{{__('Label')}}</label>
+                                                                    <input type="text" class="form-control" v-model="prescription.label" id="label"  required="">
+                                                                    <div class="help-block text-xs" v-if="form.errors.label">
+                                                                        {{form.errors.label}}
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-2 mb-3">
+                                                                    <label for="dosage">{{__('Dosage')}}</label>
+                                                                    <input type="text" class="form-control" id="dosage" v-model="prescription.dosage" >
+                                                                    <div class="help-block text-xs" v-if="form.errors.dosage">
+                                                                        {{form.errors.dosage}}
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-2 mb-3">
+                                                                    <label for="">{{__('Dosage Text')}}</label>
+                                                                    <div class="flex flex-row space-x-4">
+                                                                        <div>
+                                                                            <input value="morning" name="morning" type="checkbox" class="checkbox-custom" :id="`ma+${k}`" v-model="prescription.dosageText">
+                                                                            <label :for="`ma+${k}`" class="checkbox-custom-label px-2 py-1">
+                                                                                <i class="fa-duotone fa-sunrise"></i>
+                                                                            </label>
+                                                                        </div>
+                                                                        <div>
+                                                                            <input value="noon" name="noon" type="checkbox" class="checkbox-custom" :id="`m+${k}`" v-model="prescription.dosageText">
+                                                                            <label :for="`m+${k}`" class="checkbox-custom-label px-2 py-1">
+                                                                                <i class="fa-duotone fa-sun"></i>
+                                                                            </label>
+                                                                        </div>
+                                                                        <div>
+                                                                            <input value="evening" name="evening" type="checkbox" class="checkbox-custom" :id="`s+${k}`" v-model="prescription.dosageText" >
+                                                                            <label :for="`s+${k}`" class="checkbox-custom-label px-2 py-1">
+                                                                                <i class="fa-duotone fa-sunset"></i>
+                                                                            </label>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-2 mb-3">
+                                                                    <label for="duration">{{__('Duration')}} </label>
+                                                                    <div class="input-group flex flex-row space-x-2">
+                                                                        <input type="text" class="form-control" v-model="prescription.duration" id="duration" :placeholder="__('in day')">
+                                                                        <span class="flex flex-col text-lg">
+                                                                            <i class="fas fa-minus-circle text-danger fa-x" @click="remove(k)" v-show="k || ( !k && form.prescriptions.length > 1)"></i>
+                                                                            <i class="fas fa-plus-circle text-success fa-x" @click="add(k)" v-show="k === form.prescriptions.length-1"></i>
+                                                                        </span>
+                                                                    </div>
 
-                                                </span>
-                                                <span class="px-6 py-2 shadow-md rounded text-white bg-rose-500 text-base space-x-2
-                                                 font-semibold hover:bg-rose-700 justify-center flex flex-row items-center" v-else-if="consultation.hospitalisation.status===1"> {{ __('Patient Hospitalized ')}}</span>
+                                                                </div>
+
+                                                            </div>
+                                                            <div class="flex justify-end justify-between mb-3">
+                                                                <button @click="add(0)" type="button" v-if="form.prescriptions.length === 0"
+                                                                        class="px-6 py-2 text-purple-100 bg-purple-400 rounded hover:bg-purple-500 ">
+                                                                    <i class="fa-duotone fa-tablets mr-2"></i>
+                                                                    <span>{{__('Add Prescription')}}</span>
+                                                                </button>
+                                                                <i class="fa-duotone fa-flask-vial"></i>
+                                                                <button @click="addAnalyse(0)" type="button" v-if="form.analyses.length === 0"
+                                                                        class="px-6 py-2 rounded bg-rose-400 hover:bg-rose-500 text-rose-100">
+                                                                    <i class="fa-solid fa-vial-virus"></i>
+                                                                    <span>{{__('Add Analyse')}}</span>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <input type="hidden" v-model="form.idC" class="bg-opacity-0 hidden" >
+                                                    <loading-button :loading="form.processing" class="btn-indigo ml-auto" type="submit">{{__('Submit form')}}</loading-button>
+                                                </form>
                                             </div>
+                                            <div class="flex flex-row justify-evenly">
+                                                <form @submit.prevent="hospitalized"  v-if="consultation.diagnostic !==null && consultation.hospitalisation.length == 0">
+                                                    <button class="px-6 py-2 shadow-md rounded text-white bg-rose-500 text-base space-x-2
+                                                      font-semibold hover:bg-rose-700 justify-center flex flex-row items-baseline"
+                                                    >
+                                                        <i class="fa-duotone fa-bed text-xl font-semibold"></i>
+                                                        <span>{{ __('Hospitalized This Patient')}}</span>
+                                                    </button>
+                                                </form>
+                                                <div v-else>
+
+                                                        <span v-if="consultation.hospitalisation.status==0" class="px-4 space-x-2 py-2 shadow-md rounded text-white
+                                                              bg-teal-500 text-base
+                                                              font-semibold hover:bg-teal-700 justify-center flex flex-row items-baseline" >
+                                                               <i class="fa-duotone fa-bed-empty text-xl font-semibold"></i>
+                                                             <span> {{ __('Patient Hospitalization Asked ')}}</span>
+                                                        </span>
+
+
+                                                        <span v-else-if="consultation.hospitalisation.status==1" class="px-4 text-sm py-2 shadow-md rounded text-white bg-rose-500 text-base space-x-2
+                                                              font-semibold hover:bg-rose-700 justify-center flex flex-row items-baseline space-x-2"
+                                                        >
+                                                            <i class="fa-duotone fa-bed-pulse text-xl font-semibold"></i>
+                                                            <span>{{ __('Patient Hospitalized ')}}</span>
+                                                        </span>
+                                                    <!--    <span v-else class="px-2 md:px-2 text-sm py-2 shadow-md rounded text-white bg-rose-500 text-base space-x-2
+                                                              font-semibold hover:bg-rose-700 justify-center flex flex-row items-center"
+                                                        > {{ __('Patient Hospitalized Out')}}
+                                                        </span>-->
+                                                </div>
+                                            </div>
+
                                         </div>
-                                        <div v-if="consultation.status === 1">
+                                        <div v-if="consultation.status == 2">
                                             <div class="mt-3">
                                                 <div class="card flex-fill dash-statistics ">
                                                     <div class="card-body">
-                                                        <h5 class="card-title">{{__('First Diagnostics')}}</h5>
+                                                        <h4 class="card-title">{{__('First Diagnostics')}}</h4>
                                                         <div class="stats-list grid grid-cols-3 gap-2">
                                                             <div class="stats-info" v-for="(fdiagnostic, val) in consultation.first_diag" :key="val">
                                                                 <p><span>{{ val }}</span>{{fdiagnostic}} <strong>4 <small>/65</small></strong></p>
@@ -111,19 +244,12 @@
                                                 <div class="task-list-container">
                                                     <div class="task-list-body">
                                                         <h4>{{__('Diagnostics')}}</h4>
-                                                        <ul id="task-list">
-                                                            <li class="task" v-for="diag in consultation.diagnostic" :key="index">
-                                                                <div class="task-container">
-                                                                    <span class="task-label">{{diag}}</span>
-                                                                </div>
-                                                            </li>
-                                                        </ul>
+                                                       <div v-html="consultation.diagnostic"></div>
                                                     </div>
                                                 </div>
                                             </div>
                                                 </div>
                                             </div>
-
                                             <div class="card flex-fill dash-statistics ">
                                                 <div class="card-body">
                                                     <h4>{{__('Prescriptions')}}</h4>
@@ -132,9 +258,9 @@
                                                         <tr class="text-left font-semibold">
                                                             <th class="pb-2 pt-3 px-6 w-px">{{__('Qte')}}</th>
                                                             <th class="pb-2 pt-3 px-6">{{__('Label')}}</th>
-                                                            <th class="pb-2 pt-3 px-6">{{__('Dosage')}}</th>
+                                                            <th class="pb-2 pt-3 px-6 w-px">{{__('Dosage')}}</th>
                                                             <th class="pb-2 pt-3 px-6">{{__('Dosage Text')}}</th>
-                                                            <th class="pb-2 pt-3 px-6">{{__('Duration')}}</th>
+                                                            <th class="pb-2 pt-3 px-6 w-px">{{__('Duration')}}</th>
                                                         </tr>
                                                         <tr v-for="prescrit in consultation.prescriptions" :key="prescrit.id" class="hover:bg-gray-100 focus-within:bg-gray-100">
                                                             <td class="border-t px-6 py-2 w-px">
@@ -142,17 +268,16 @@
                                                             </td>
                                                             <td class="border-t px-6 py-2">
                                                                 {{ prescrit.label }}
-
                                                             </td>
-                                                            <td class="border-t px-6 py-2">
+                                                            <td class="border-t py-2 w-px">
                                                                 {{ prescrit.dosage }}
                                                             </td>
-                                                            <td class="border-t px-2  w-auto items-center">
-                        <span v-for="item in prescrit.dosage_text" :key="index" class="p-1 bg-cyan-400 max-w-sm  rounded shadow-sm">
-                            {{ __(item) }}
-                        </span>
+                                                            <td class="border-t px-2 items-center">
+                                                                <span v-for="item in prescrit.dosage_text" :key="index" class="p-1 bg-cyan-400 w-px rounded shadow-sm mr-1">
+                                                                    {{ __(item) }}
+                                                                </span>
                                                             </td>
-                                                            <td class="border-t px-6 py-2 w-px">
+                                                            <td class="border-t py-2 w-px">
                                                                 {{ prescrit.duration }} (<span>{{__('Day')}}</span>)
                                                             </td>
                                                         </tr>
@@ -160,7 +285,6 @@
                                                 </div>
                                                 </div>
                                             </div>
-
                                             <div class="card flex-fill dash-statistics " v-if="consultation.analyses.length !==0">
                                                 <div class="card-body">
                                                     <h4>{{__('Analyses')}}</h4>
@@ -174,7 +298,7 @@
                                                             </tr>
                                                             <tr v-for="analyse in consultation.analyses" :key="analyse.id" class="hover:bg-gray-100 focus-within:bg-gray-100">
                                                                 <td class="border-t px-6 py-2 w-px">
-                                                                    {{ analyse.analyse.title }}
+                                                                    {{ analyse.title }}
                                                                 </td>
                                                                 <td class="border-t px-6 py-2">
                                                                     {{ analyse.note}}
@@ -191,16 +315,12 @@
                                                     </div>
                                                 </div>
                                             </div>
-
                                         </div>
+<!--                                        Modal Analyse-->
                                         <ModalConsultation v-bind:modalMc="modalMa" :toggleModalConsultation="toggleModalAnalyse">
                                             <template v-slot:header>
                                                 {{ __('Add Analysis')}}
-                                                <button type="button"
-                                                        class="btn-close"
-                                                        v-on:click="toggleModalAnalyse"
-                                                        aria-label="Close modal"
-                                                >
+                                                <button type="button" class="btn-close" v-on:click="toggleModalAnalyse" aria-label="Close modal" >
                                                     x
                                                 </button>
                                             </template>
@@ -230,7 +350,7 @@
                                                             </li>
                                                         </ul>
                                                     </div>
-                                                    <div class="shadow-sm rounded col-span-2 p-2 bg-cyan-100 h-36 overflow-y-auto" v-if="consultation.diagnostic.length>0">
+                                                    <div class="shadow-sm rounded col-span-2 p-2 bg-cyan-100 h-36 overflow-y-auto" v-if="consultation.diagnostic">
                                                         <ul v-for="diag in consultation.diagnostic">
                                                             <transition-group>
                                                                 <li>{{ diag }}</li>
@@ -275,9 +395,6 @@
                                                 </form>
                                             </template>
                                         </ModalConsultation>
-                                     <!--<FirstDiag :consultation="consultation" />
-                                     <Diagnostics :consultation="consultation" />
-                                     <Prescription :consulta="consultation" />-->
                                     </div>
                                 </div>
                             </div>
@@ -285,13 +402,6 @@
                     </div>
                 </div>
             </div>
-            <!-- /Chats View -->
-            <!-- Chat Right Sidebar -->
-            <div class="col-lg-2 message-view chat-profile-view chat-sidebar" id="task_window" >
-                <detail-patient :patient="{ consultation }"/>
-            </div>
-
-            <!-- /Chat Right Sidebar -->
         </div>
         <!-- /Chat Main Wrapper -->
     </div>
@@ -301,7 +411,7 @@
 <script>
     import PageHeader from "../../../Shared/PageHeader";
     import HeaderTitle from "../../../Shared/HeaderTitle";
-    import { Link } from '@inertiajs/inertia-vue3'
+    import {Link, useForm} from '@inertiajs/inertia-vue3'
     import Sugar from "../../../Shared/Sugar";
     import FirstDiag from "./FirstDiag";
     import Diagnostics from "./Diagnostics";
@@ -310,12 +420,14 @@
     import ModalConsultation from "@/Shared/ModalConsultation";
     import LoadingButton from "@/Shared/LoadingButton";
     import Analyse from "@/Pages/Partner/Consultation/Analyse";
+    import Editor from '@ckeditor/ckeditor5-build-classic';
+    import VueMultiselect from 'vue-multiselect'
     export default {
         name: "Consult",
         components: {
             Analyse,
             LoadingButton,
-            ModalConsultation, Prescription, DetailPatient, Diagnostics, FirstDiag, Sugar, HeaderTitle, PageHeader,Link},
+            ModalConsultation, Prescription, DetailPatient, Diagnostics, FirstDiag, Sugar, HeaderTitle, PageHeader,Link,VueMultiselect},
         props : {
             consultation: Object,
             title: String,
@@ -324,24 +436,38 @@
         },
         data: function(){
             return{
+                editor: Editor,
+                editorConfig: {
+                    // Run the editor with the German UI.
+                    language: 'fr',
+                    height: '500px',
+                    ui: {
+                        width: '500px',
+                        height: '300px'
+                    }
+                },
                 show: false,
                 modalMc: false,
                 modalMa: false,
-                diag:false,
-                pres:false,
-                fdiag:true,
-                form: this.$inertia.form({
-                    _method: 'put',
-                    idconsultation: this.consultation.slug
-                }),
-                formH: this.$inertia.form({
-                    _method: 'post',
-                    idco: this.consultation.slug,
-                    type:1
-                }),
-
              //   options: [this.consultation.category_analyses]
             }
+        },
+        setup(props){
+            const form = useForm({
+                sugar: '',
+                tension: '',
+                temperature:'',
+                diagnostic: '',
+                result:'',
+                prescriptions:[],
+                analyses: [],
+                idC: props.consultation.id
+            })
+           const  formH = useForm({
+                 idco: props.consultation.id,
+                 type:1
+             })
+            return { form, formH  }
         },
         methods: {
             closeModal: function(){
@@ -361,36 +487,77 @@
             toggleModalAnalyse: function () {
                 this.modalMa = !this.modalMa;
             },
-            endConsult () {
-                this.form.post(route('end.cons'),{
-                    onSuccess: () =>  this.modalMc=false
-
-                })
-            },
-
             hospitalized () {
                 this.formH.post(route('hospitalisation.add'),{
                     onSuccess: () => {}
                 })
             },
-            endPres:function(){
-               this.pres = false
+            add(index) {
+                this.form.prescriptions.push({
+                    qte: '',
+                    duration: '',
+                    label: '',
+                    dosage: '',
+                    dosageText: [],
+                });
             },
-            endDiag:function(){
-               this.diag = false
-               this.pres=true;
+            remove(index) {
+                this.form.prescriptions.splice(index, 1);
             },
-            endFdiag: function(){
-                this.fdiag = false
-                this.diag = true
+            addAnalyse(index) {
+                this.form.analyses.push({
+                    analyse_id:'',
+                    emergency:'',
+                    note:'',
+                });
+            },
+            removeAnalyse(index) {
+                this.form.analyses.splice(index, 1);
+            },
+            handleConsultation: function () {
+                /*  alert(props.consultation.slug)*/
+              this.form.put(route('consultation.store'),{
+                   _method: 'put',
+                    onSuccess: () => this.form.reset()
+                })
             }
+
         },
+
+
+
     }
     //task_window
 </script>
 
 <style scoped>
+    .ck-editor__editable {
 
+    }
+    .ck-editor {
+        margin: 1em 0;
+        border: 1px solid hsla(0, 0%, 0%, 0.1);
+        border-radius: 4px;
+        height: 500px;
+    }
+
+    .checkbox-custom {
+        opacity: 0;
+        position: absolute;
+    }
+
+    .checkbox-custom-label {
+        border: 2px solid #f87171;
+        /*padding: 4px;*/
+        cursor: pointer;
+        color: #f87171;
+    }
+
+    .checkbox-custom:checked + .checkbox-custom-label {
+        color: #059669;
+        border: 2px solid #059669;
+        /*padding: 2px 4px;*/
+    }
 </style>
 
 <style>

@@ -292,16 +292,12 @@ class AmaServiceProvider extends ServiceProvider
         //Share variable for view
         view()->share('au_languages', au_language_all());
         view()->share('au_currencies', au_currency_all());
-        view()->share('au_blocksContent', au_partner_block());
-        view()->share('au_layoutsUrl', au_link());
+
+
         view()->share('au_templatePath', 'templates.' . au_partner('template'));
         view()->share('au_templateFile', 'templates/' . au_partner('template'));
         //variable model
 
-        view()->share('modelBanner', (new FegguBanner));
-        view()->share('modelBrand', (new FegguBrand));
-        view()->share('modelNews', (new FegguNews));
-        view()->share('modelPage', (new FegguPage));
         //
         view()->share('templatePathAdmin', config('admin.path_view'));
         view()->share('templatePathPartner', config('partner.path_view'));

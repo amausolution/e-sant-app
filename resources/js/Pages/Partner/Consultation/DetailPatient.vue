@@ -1,72 +1,18 @@
 <template>
-    <div class="chat-window video-window">
-        <div class="fixed-header">
-            <ul class="nav nav-tabs nav-tabs-bottom flex justify-between">
-                <li class="nav-item"><a class="nav-link active" href="#profile_tab" data-toggle="tab">Profile</a></li>
-                <li class="nav-item">
-                    <button  class="nav-link bg-red-500" v-on:click="toggleModal">{{__('Pathology')}}</button>
-                </li>
-                <li class="nav-item"><button class="nav-link bg-green-500" v-on:click="toggleModalAllergy">{{__('Allergy')}}</button></li>
-            </ul>
-        </div>
-        <div class="tab-content chat-contents">
-            <div class="content-full tab-pane show active" id="profile_tab">
-                <div class="display-table">
-                    <div class="table-row">
-                        <div class="table-body">
-                            <div class="table-content">
-                                <div class="chat-profile-img">
-                                    <div class="edit-profile-img">
-                                        <img :src="patient.consultation.avatar" alt="">
-                                        <span class="change-img"></span>
-                                    </div>
-                                    <h3 class="user-name m-t-4 mb-0">{{patient.consultation.name}}</h3>
-                                    <small class="text-muted">{{patient.consultation.blood_group}}</small>
-                                    <a href="javascript:void(0);" class="btn btn-primary edit-btn"><i class="fa fa-pencil"></i></a>
-                                </div>
-                                <div class="chat-profile-info">
-                                    <ul class="user-det-list">
-                                        <li>
-                                            <span>{{__('Phone')}}:</span>
-                                            <span class="float-right text-muted">{{ patient.consultation.mobil}}</span>
-                                        </li>
-                                        <li>
-                                            <span>{{__('DOB')}}:</span>
-                                            <span class="float-right text-muted">{{patient.consultation.birthday}}</span>
-                                        </li>
-                                        <li>
-                                            <span>{{__('Email')}}:</span>
-                                            <span class="float-right text-muted">{{patient.consultation.email ?? __('NEAN')}}</span>
-                                        </li>
-                                        <li>
-                                            <span>{{__('PatientID')}}:</span>
-                                            <span class="float-right text-muted">{{patient.consultation.doc_number}}</span>
-                                        </li>
-                                    </ul>
-                                </div>
-                                <div class="px-2" v-if="patient.consultation.allergies ">
-                                  <span>{{__('Allergies')}}</span>
-                                    <ul id="example-1">
-                                        <li v-for="allergy in patient.consultation.allergies" :key="allergy.id">
-                                            {{ allergy.message }}
-                                        </li>
-                                    </ul>
-                                </div>
-                                <div class="px-2" v-if="patient.consultation.pathologs">
-                                    <span>{{ __('Pathologies')}}</span>
-                                    <ul id="example">
-                                        <li v-for="pathology in patient.consultation.pathologies" :key="pathology.id">
-                                            {{ pathology.message }}
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+
+    <li class="nav-item ml-2">
+        <button  class="nav-link px-6 py-2 rounded bg-rose-400 hover:bg-rose-500 text-sm text-rose-100 shadow-md" v-on:click="toggleModal">
+            <i class="fa-duotone fa-viruses"></i>
+            {{__('Pathology')}}
+        </button>
+    </li>
+    <li class="nav-item ml-2">
+        <button class="nav-link px-6 py-2 text-sm text-orange-500 bg-orange-100 rounded shadow-md hover:bg-orange-200" v-on:click="toggleModalAllergy">
+            <i class="fa-duotone fa-hand-dots"></i>
+            {{__('Allergy')}}
+        </button>
+    </li>
+
     <Modal v-bind:revel="revel" :toggle-modal="toggleModal">
 
         <template v-slot:header> {{__('New Pathology')}} </template>

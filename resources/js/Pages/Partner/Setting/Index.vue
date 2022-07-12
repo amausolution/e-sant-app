@@ -20,9 +20,10 @@
 <script>
     import HeaderTitle from "@/Shared/HeaderTitle";
     import PageHeader from "@/Shared/PageHeader";
+    import {Link} from "@inertiajs/inertia-vue3";
     export default {
         name: "Index",
-        components: {PageHeader, HeaderTitle},
+        components: {PageHeader, HeaderTitle, Link},
         props: {
             title: String
         }

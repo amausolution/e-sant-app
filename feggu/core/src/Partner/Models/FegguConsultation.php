@@ -14,9 +14,7 @@ use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
 
-/**
- * @method static where(string $string, \Illuminate\Contracts\Foundation\Application|\Illuminate\Session\SessionManager|\Illuminate\Session\Store $partner)
- */
+
 class FegguConsultation extends Model //implements HasMedia
 {
     use Notifiable, SoftDeletes, UuidTrait;// InteractsWithMedia;
@@ -32,10 +30,8 @@ class FegguConsultation extends Model //implements HasMedia
 
     protected $casts = [
         'first_diag'=>'array',
-        'diagnostic'=>'array'
+       // 'diagnostic'=>'array'
     ];
-
-
 
     public function hospital()
     {
@@ -127,6 +123,7 @@ class FegguConsultation extends Model //implements HasMedia
             if (empty($model->{$model->getKeyName()})) {
                 $model->{$model->getKeyName()} = au_generate_id();
             }
+            $model->identifier = strtoupper(au_token(8));
         });
         static::deleting(
             function ($model) {
@@ -190,12 +187,23 @@ class FegguConsultation extends Model //implements HasMedia
     {
         $query->when($filters['search'] ?? null, function ($query, $search) {
             $query->where(function ($query) use ($search) {
-                $query->where('address', 'like', '%'.$search.'%')
-                    ->orWhereHas('patient', function ($query) use ($search) {
-                        $query->where('doc_number', '=', $search)
-                        ->orWhere('last_name', 'like', '%'.$search.'%')
+                $query->whereHas('patient', function ($query) use ($search) {
+                        $query->where('last_name', 'like', '%'.$search.'%')
                             ->orWhere('first_name', 'like', '%'.$search.'%');
                     });
+            });
+        })->when($filters['gender'] ?? null, function ($query, $gender) {
+            $query->where(function ($query) use ($gender) {
+                $query->whereHas('patient', function ($query) use ($gender) {
+                    $query->where('gender', $gender);
+                });
+            });
+        })->when($filters['identifier'] ?? null, function ($query, $identifier) {
+            $query->where(function ($query) use ($identifier) {
+                $query->whereHas('patient', function ($query) use ($identifier) {
+                    $query->where('doc_number', '=', $identifier)
+                        ->orWhere('matricule', '=', $identifier);
+                });
             });
         })->when($filters['trashed'] ?? null, function ($query, $trashed) {
             if ($trashed === 'with') {

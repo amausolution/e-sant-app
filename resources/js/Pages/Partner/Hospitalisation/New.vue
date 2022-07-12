@@ -55,7 +55,23 @@
             <div class="col-12 col-md-6 ">
                 <div class="p-2">
                     <div v-for="room in rooms" class="flex flex-col space-y-4 shadow-md rounded-lg border p-2 mb-4">
-                        <span class="text-lg font-semibold">{{__('Room')}}-{{ room.room_number}}</span>
+                        <div class="flex flex-row justify-between">
+                            <span class="text-lg font-semibold">
+                              <i class="fa-duotone fa-door-open"></i>
+                              {{__('Room')}}-{{ room.room_number}}
+                            </span>
+                            <span v-if="room.bed_accompanying">
+                                {{__('Bed Accompanying')}}
+                                <i class="fa-duotone fa-bed-front"></i>
+                            </span>
+                            <span class="flex flex-row space-x-2">
+                              <span>{{__('Options')}}</span>
+                             <i v-if="room.wc_in" class="fa-duotone fa-toilet"></i>
+                             <i v-if="room.clim" class="fa-duotone fa-snowflake"></i>
+                             <i v-else class="fa-duotone fa-fan-table"></i>
+                        </span>
+                        </div>
+
                         <div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 radiobtn">
                             <div  v-for="(bed,b) in room.beds" class="flex flex-row space-x-2 radiobtn">
                                 <input :disabled="bed.status" name="bed" :value="bed.id" :id="`be${bed.id}`" class="form-control" type="radio" v-model="form.bed" style="width: 1rem; height: 1rem">

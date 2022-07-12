@@ -2,6 +2,7 @@
 
 namespace Feggu\Core\Partner\Models;
 
+use App\Partner\Models\FegguUserInsurer;
 use Feggu\Core\Partner\Models\FegguEmailTemplate;
 use Feggu\Core\Partner\Models\FegguPatientAddress;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -24,7 +25,7 @@ class FegguUser extends Authenticatable
      */
     protected $table = AU_DB_PREFIX.'patient';
     protected $guarded = [];
-    protected $connection = 'patient';
+    protected $connection = 'consultation';
     private static $profile = null;
     /**
      * The attributes that should be hidden for arrays.
@@ -42,6 +43,10 @@ class FegguUser extends Authenticatable
     {
         return $this->hasOne(FegguUserDetail::class,'patient_id','id');
     }
+    public function insurer()
+    {
+        return $this->hasOne(FegguUserInsurer::class,'patient_id','id');
+    }
 
     public function hospitals()
     {
@@ -55,7 +60,7 @@ class FegguUser extends Authenticatable
 
     public function consultations()
     {
-     return  $this->hasMany(FegguConsultation::class,'patient_id','id');
+     return  $this->setConnection('consultation')->hasMany(FegguConsultation::class,'patient_id','id');
     }
 
     public function pathologies()

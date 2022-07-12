@@ -5,6 +5,7 @@ namespace Feggu\Core\Partner\Models;
 use Illuminate\Database\Eloquent\Model;
 use Cache;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class FegguConsultationAnalyse extends Model
 {
@@ -12,15 +13,15 @@ class FegguConsultationAnalyse extends Model
     protected $connection  = 'consultation';
     protected $guarded     = [];
 
-    use SoftDeletes;
+    use SoftDeletes, UuidTrait;
 
     protected $casts = [
-        'analyse'=>'array'
+        'Analyse'=>'array'
     ];
 
-    public function resultat()
+    public function results()
     {
-       return $this->hasOne(FegguAnalyseDetail::class,'analyse_id','id') ;
+       return $this->hasMany(FegguAnalyseDetail::class,'analyse_id','id') ;
     }
 
     public function consultation()
@@ -40,10 +41,30 @@ class FegguConsultationAnalyse extends Model
     {
         parent::boot();
         // before delete() method call this
+        static::creating(function ($model) {
+            $model->slug =  strtoupper(au_token(8));
+            if (empty($model->{$model->getKeyName()})) {
+                $model->{$model->getKeyName()} = au_generate_id();
+            }
+        });
         static::deleting(
             function ($obj) {
                 //
             }
         );
+    }
+
+    public function scopeFilter($query, array $filters)
+    {
+        $query->when($filters['search'] ?? null, function ($query, $search) {
+            $query->where(function ($query) use ($search) {
+                $query->where('slug', $search);
+            })->when($filters['matricule'] ?? null, function ($query, $identifier) {
+                $query->where(function ($query) use ($identifier) {
+                    $query->where('matricule', $identifier)
+                        ->orWhere('doc_number', $identifier);
+                });
+            });
+        });
     }
 }

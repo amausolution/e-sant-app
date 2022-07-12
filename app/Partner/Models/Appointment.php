@@ -7,13 +7,15 @@ use Feggu\Core\Partner\Models\FegguUser;
 use Feggu\Core\Partner\Models\PartnerUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Multitenancy\Models\Concerns\UsesTenantConnection;
 
 class Appointment extends Model
 {
     use HasFactory;
     public $table = AU_DB_PREFIX . 'appointment_patient';
     protected $guarded = [];
-    protected $connection = AU_CONNECTION;
+
+    use UsesTenantConnection;
 
     public function user()
     {

@@ -2,6 +2,8 @@
 #Feggu/Core/Partner/Models/FegguCustomFieldDetail.php
 namespace Feggu\Core\Partner\Models;
 
+use App\Partner\Models\Pharmacy;
+use App\Partner\Models\PrescriptionDetail;
 use Illuminate\Database\Eloquent\Model;
 use Cache;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -20,10 +22,20 @@ class FegguConsultationPrescription extends Model
     {
         return $this->belongsTo(PartnerUser::class,'doctor_id','id');
     }
+    public function pharmacy()
+    {
+        return $this->belongsTo(Pharmacy::class,'pharmacy_id','id');
+    }
     public function consultation()
     {
         return $this->belongsTo(FegguConsultation::class,'consultation_id','id');
     }
+
+    public function detail()
+    {
+        return $this->hasOne(PrescriptionDetail::class,'prescription_id','id');
+    }
+
 
 
     //Function get text description

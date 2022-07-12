@@ -72,7 +72,7 @@
                 <div class="col-md-6 col-12 col-lg-6 col-sm-6 address" wire:ignore.self>
                     <div class="form-group form-focus  " wire:ignore.self>
                 <textarea name="address" id="address"
-                          class="form-control floating @error('birthday') is-invalid @elseif($address === null) @else is-valid @enderror"
+                          class="form-control floating @error('address') is-invalid @elseif($address === null) @else is-valid @enderror"
                           wire:model="address" cols="3"></textarea>
                         <label for="address" class="focus-label">{{__('Address')}}</label>
                     </div>
@@ -84,8 +84,8 @@
                         <label class="btn btn-outline-secondary btn-sm {{ $gender == 1 ?'active':'' }} ">
                             <input type="radio" name="gender" wire:model="gender" id="male" autocomplete="off" value="1" > {{__('Male')}}
                         </label>
-                        <label class="btn btn-outline-secondary btn-sm pull-right {{ $gender == 0 ?'active':'' }}">
-                            <input type="radio" name="gender" wire:model="gender" id="female" value="0"
+                        <label class="btn btn-outline-secondary btn-sm pull-right {{ $gender == 2 ?'active':'' }}">
+                            <input type="radio" name="gender" wire:model="gender" id="female" value="2"
                                    autocomplete="off"> {{__('Female')}}
                         </label>
                     </div>
@@ -109,15 +109,27 @@
                     </div>
                     @error('phone2') <span class="error">{{ $message }}</span> @enderror
                 </div>
+
                 <div class="col-md-3 col-6 col-lg-3 col-sm-3 godfather" wire:ignore.self="">
+                    <div class="form-group form-focus godfather " wire:ignore.self>
+                        <input id="godfather_matricule" name="godfather_matricule" wire:model="godfather_matricule"
+                               class="form-control floating @error('godfather_matricule') is-invalid @elseif($godfather_matricule === null) @else is-valid @enderror"
+                               type="text"/>
+                        <label for="godfather_matricule" class="focus-label">{{__('Tutor Matricule')}}</label>
+                    </div>
+                    @error('godfather_matricule') <span class="error">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="col-md-3 col-6 col-lg-3 col-sm-3 godfather" wire:ignore.self="" >
                     <div class="form-group form-focus godfather " wire:ignore.self>
                         <input id="godfather" name="godfather" wire:model="godfather"
                                class="form-control floating @error('godfather') is-invalid @elseif($godfather === null) @else is-valid @enderror"
                                type="text"/>
-                        <label for="godfather" class="focus-label">{{__('Tutor')}}</label>
+                        <label for="godfather" class="focus-label">{{__('Tutor Full Name')}}</label>
                     </div>
                     @error('godfather') <span class="error">{{ $message }}</span> @enderror
                 </div>
+
                 <div class="col-md-3 col-6 col-lg-3 col-sm-3 type_piece"  wire:ignore>
                     <div class="form-group form-focus select-focus " wire:ignore.self>
                         <select name="type_piece" class="select floating @error('type_piece') is-invalid @enderror" id="type_piece">
@@ -169,6 +181,7 @@
                          <label for="insured" class="checktoggle">{{__('Is insured')}}</label>
                      </div>--}}
                 </div>
+{{--                insurer data                                        --}}
                 <div class="col-md-3 col-6 col-lg-3 col-sm-3 insurer" wire:ignore.self>
                     <div class="form-group form-focus " wire:ignore.self>
                         <input name="insurer" type="text" id="insurer"
@@ -200,7 +213,15 @@
                         <label class="focus-label">{{__('Insurer Percentage')}}</label>
                         @error('insurer_percentage') <span class="error">{{ $message }}</span> @enderror
                     </div>
-
+                </div>
+                <div class="col-md-3 col-6 col-lg-3 col-sm-3 percentage " wire:ignore.self>
+                    <div class="form-group form-focus " wire:ignore.self>
+                        <input name="insurer_percentage" type="text"
+                               class="form-control floating numeric-validation @error('insurer_percentage') is-invalid @elseif($nbr_person === null) @else is-valid @enderror"
+                               wire:model="nbr_person">
+                        <label class="focus-label">{{__('Number Of Persons')}}</label>
+                        @error('nbr_person') <span class="error">{{ $message }}</span> @enderror
+                    </div>
                 </div>
                 <div class="col-md-3 col-6 col-lg-3 col-sm-3 exp-date" wire:ignore.self>
                     <div class="form-group form-focus  focused" wire:ignore.self>
@@ -210,7 +231,6 @@
                         <label class="focus-label">{{__('Insurer Percentage')}}</label>
                         @error('exp_date') <span class="error">{{ $message }}</span> @enderror
                     </div>
-
                 </div>
             </div>
             <div  class="row filter-row">

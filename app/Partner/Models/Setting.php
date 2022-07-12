@@ -14,7 +14,7 @@ class Setting extends Model
     protected $table = AU_DB_PREFIX.'table_setting';
     protected $guarded =[];
     protected $connection = AU_CONNECTION;
-    use SoftDeletes, UsesTenantConnection;
+    use SoftDeletes;
 
     public function partner()
     {

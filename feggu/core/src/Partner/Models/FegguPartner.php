@@ -1,6 +1,10 @@
 <?php
 namespace Feggu\Core\Partner\Models;
 
+use App\Partner\Models\BlocRoom;
+use App\Partner\Models\Laboratory;
+use App\Partner\Models\OperatingRoom;
+use App\Partner\Models\Pharmacy;
 use App\Partner\Models\Setting;
 use App\Partner\Models\SettingPartner;
 use Feggu\Core\Admin\Models\AdminConfig;
@@ -31,7 +35,11 @@ class FegguPartner extends Model
     }
     public function laboratory()
     {
-        return $this->hasOne(PartnerLab::class,'partner_id','id');
+        return $this->hasOne(Laboratory::class,'partner','id');
+    }
+    public function pharmacy()
+    {
+        return $this->hasOne(Pharmacy::class,'partner_id','id');
     }
 
     public function part()
@@ -44,10 +52,6 @@ class FegguPartner extends Model
         return $this->hasMany(FegguPartnerDescription::class, 'partner_id', 'id');
     }
 
-    public function banners()
-    {
-        return $this->belongsToMany(FegguPartner::class, FegguBannerPartner::class, 'partner_id', 'banner_id');
-    }
 
     public function users()
     {
@@ -61,7 +65,7 @@ class FegguPartner extends Model
 
     public function consultations()
     {
-        return $this->hasMany(PartnerConsultation::class, 'hospital_id','id');
+        return $this->hasMany(FegguConsultation::class, 'hospital_id','id');
     }
 
     public function insurers()
@@ -72,12 +76,25 @@ class FegguPartner extends Model
     {
         return $this->hasMany(HospitalRoom::class, 'hospital_id','id');
     }
+    public function roomsBloc()
+    {
+        return $this->hasMany(BlocRoom::class, 'partner_id','id');
+    }
+    public function operatingRooms()
+    {
+        return $this->hasMany(OperatingRoom::class, 'partner_id','id');
+    }
+
 
     public function patients()
     {
         return $this->belongsToMany(FegguUser::class, FegguPatient::class,'hospital_id','patient_id');
     }
 
+    public function ambulances()
+    {
+        return $this->hasMany(\App\Partner\Models\Ambulance::class, 'partner_id','id');
+    }
 
     public function departments()
     {
